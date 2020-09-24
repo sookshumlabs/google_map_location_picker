@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:collection';
 import 'dart:convert';
 
 import 'package:android_intent/android_intent.dart';
@@ -154,6 +155,31 @@ class MapPickerState extends State<MapPicker> {
       ),
     );
   }
+  Set<Circle> _circles = HashSet<Circle>();
+//ids
+  int _circleIdCounter = 1;
+
+  // Type controllers
+  bool _isPolygon = true; //Default
+  bool _isMarker = false;
+  bool _isCircle = false;
+
+
+
+  // Set circles as points to the map
+  void _setCircles(LatLng point) {
+    final String circleIdVal = 'circle_id_$_circleIdCounter';
+    _circleIdCounter++;
+    print(
+        'Circle | Latitude: ${point.latitude}  Longitude: ${point.longitude}  Radius: 150');
+    _circles.add(Circle(
+        circleId: CircleId(circleIdVal),
+        center: point,
+        radius: 150,
+        fillColor: Colors.redAccent.withOpacity(0.5),
+        strokeWidth: 3,
+        strokeColor: Colors.redAccent));
+  }
 
   Widget buildMap() {
     return Center(
@@ -167,6 +193,7 @@ class MapPickerState extends State<MapPicker> {
             ),
             onMapCreated: (GoogleMapController controller) {
               mapController.complete(controller);
+             
               //Implementation of mapStyle
               if (widget.mapStylePath != null) {
                 controller.setMapStyle(_mapStyle);
@@ -178,6 +205,7 @@ class MapPickerState extends State<MapPicker> {
             },
             onCameraMove: (CameraPosition position) {
               _lastMapPosition = position.target;
+              _setCircles(position.target);
             },
             onCameraIdle: () async {
               print("onCameraIdle#_lastMapPosition = $_lastMapPosition");
@@ -191,6 +219,7 @@ class MapPickerState extends State<MapPicker> {
 //              clearOverlay();
 //            },
             mapType: _currentMapType,
+            circles: _circles,
             myLocationEnabled: true,
           ),
           _MapFabs(
@@ -199,6 +228,7 @@ class MapPickerState extends State<MapPicker> {
             onToggleMapTypePressed: _onToggleMapTypePressed,
             onMyLocationPressed: _initCurrentLocation,
           ),
+          
           pin(),
           locationCard(),
         ],
@@ -255,7 +285,7 @@ class MapPickerState extends State<MapPicker> {
                       });
                     },
                     child: widget.resultCardConfirmIcon ??
-                        Icon(Icons.arrow_forward, color: Theme.of(context).primaryColor,),
+                        Icon(Icons.arrow_forward),
                   ),
                 ],
               ),
