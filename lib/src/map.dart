@@ -170,15 +170,16 @@ class MapPickerState extends State<MapPicker> {
   void _setCircles(LatLng point) {
     final String circleIdVal = 'circle_id_$_circleIdCounter';
     _circleIdCounter++;
-    print(
-        'Circle | Latitude: ${point.latitude}  Longitude: ${point.longitude}  Radius: 150');
-    _circles.add(Circle(
+    print('Circle | Latitude: ${point.latitude}  Longitude: ${point.longitude}  Radius: 150');
+    setState(() {
+      _circles.add(Circle(
         circleId: CircleId(circleIdVal),
         center: point,
         radius: 150,
         fillColor: Colors.redAccent.withOpacity(0.5),
         strokeWidth: 3,
         strokeColor: Colors.redAccent));
+    });
   }
 
   Widget buildMap() {
@@ -200,17 +201,17 @@ class MapPickerState extends State<MapPicker> {
               }
 
               _lastMapPosition = widget.initialCenter;
-              LocationProvider.of(context, listen: false)
-                  .setLastIdleLocation(_lastMapPosition);
+              LocationProvider.of(context, listen: false).setLastIdleLocation(_lastMapPosition);
             },
             onCameraMove: (CameraPosition position) {
               _lastMapPosition = position.target;
-              _setCircles(position.target);
+             
             },
             onCameraIdle: () async {
               print("onCameraIdle#_lastMapPosition = $_lastMapPosition");
               LocationProvider.of(context, listen: false)
                   .setLastIdleLocation(_lastMapPosition);
+              _setCircles(_lastMapPosition);
             },
             onCameraMoveStarted: () {
               print("onCameraMoveStarted#_lastMapPosition = $_lastMapPosition");
