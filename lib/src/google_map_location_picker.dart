@@ -387,7 +387,7 @@ class LocationPickerState extends State<LocationPicker> {
         return Scaffold(
           extendBodyBehindAppBar: true,
           appBar: AppBar(
-            iconTheme: Theme.of(context).iconTheme,
+            automaticallyImplyLeading: false,
             elevation: 0,
             backgroundColor: widget.appBarColor,
             key: appBarKey,

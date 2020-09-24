@@ -172,13 +172,14 @@ class MapPickerState extends State<MapPicker> {
     _circleIdCounter++;
     print('Circle | Latitude: ${point.latitude}  Longitude: ${point.longitude}  Radius: 150');
     setState(() {
+      _circles.clear();
       _circles.add(Circle(
         circleId: CircleId(circleIdVal),
         center: point,
         radius: 150,
-        fillColor: Colors.redAccent.withOpacity(0.5),
+        fillColor: Colors.grey.withOpacity(0.5),
         strokeWidth: 3,
-        strokeColor: Colors.redAccent));
+        strokeColor: Colors.grey));
     });
   }
 
@@ -210,9 +211,11 @@ class MapPickerState extends State<MapPicker> {
             onCameraIdle: () async {
               print("onCameraIdle#_lastMapPosition = $_lastMapPosition");
               
-              _setCircles(_lastMapPosition);
+
               LocationProvider.of(context, listen: false)
                   .setLastIdleLocation(_lastMapPosition);
+              _setCircles(_lastMapPosition);
+
             },
             onCameraMoveStarted: () {
               print("onCameraMoveStarted#_lastMapPosition = $_lastMapPosition");
@@ -283,7 +286,7 @@ class MapPickerState extends State<MapPicker> {
                           latLng: locationProvider.lastIdleLocation,
                           address: _address,
                           placeId: _placeId,
-                        )
+                        ),
                       });
                     },
                     child: widget.resultCardConfirmIcon ??
@@ -325,7 +328,7 @@ class MapPickerState extends State<MapPicker> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Icon(Icons.place, size: 56),
+            Icon(Icons.place, size: 40, color:Colors.black),
             Container(
               decoration: ShapeDecoration(
                 shadows: [
@@ -342,7 +345,7 @@ class MapPickerState extends State<MapPicker> {
                 ),
               ),
             ),
-            SizedBox(height: 56),
+            SizedBox(height: 40),
           ],
         ),
       ),
