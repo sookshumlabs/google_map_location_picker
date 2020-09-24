@@ -255,7 +255,7 @@ class MapPickerState extends State<MapPicker> {
                       });
                     },
                     child: widget.resultCardConfirmIcon ??
-                        Icon(Icons.arrow_forward),
+                        Icon(Icons.arrow_forward, color: Theme.of(context).primaryColor,),
                   ),
                 ],
               ),
@@ -469,7 +469,7 @@ class _MapFabs extends StatelessWidget {
               onPressed: onToggleMapTypePressed,
               materialTapTargetSize: MaterialTapTargetSize.padded,
               mini: true,
-              child: const Icon(Icons.layers),
+              child: Icon(Icons.layers,color: Theme.of(context).primaryColor),
               heroTag: "layers",
             ),
           if (myLocationButtonEnabled)
@@ -477,7 +477,7 @@ class _MapFabs extends StatelessWidget {
               onPressed: onMyLocationPressed,
               materialTapTargetSize: MaterialTapTargetSize.padded,
               mini: true,
-              child: const Icon(Icons.my_location),
+              child: Icon(Icons.my_location,color: Theme.of(context).primaryColor),
               heroTag: "myLocation",
             ),
         ],
