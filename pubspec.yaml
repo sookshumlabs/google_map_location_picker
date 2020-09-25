@@ -24,7 +24,8 @@ dependencies:
   http: ^0.12.2
   stack_trace: ^1.9.5
   package_info: '>=0.4.0+14 <2.0.0'
-
+  fluid_slider:
+  
 dev_dependencies:
   flutter_test:
     sdk: flutter

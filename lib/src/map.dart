@@ -10,6 +10,7 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:geolocator/geolocator.dart';
 import 'package:google_map_location_picker/generated/l10n.dart';
 import 'package:google_map_location_picker/src/providers/location_provider.dart';
+import 'package:google_map_location_picker/src/slider.dart';
 import 'package:google_map_location_picker/src/utils/loading_builder.dart';
 import 'package:google_map_location_picker/src/utils/log.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -158,13 +159,8 @@ class MapPickerState extends State<MapPicker> {
   Set<Circle> _circles = HashSet<Circle>();
 //ids
   int _circleIdCounter = 1;
-
-  // Type controllers
-  bool _isPolygon = true; //Default
-  bool _isMarker = false;
-  bool _isCircle = false;
-
-
+  double  radius = 150;
+  dynamic locationReminderAt = '';
 
   // Set circles as points to the map
   void _setCircles(LatLng point) {
@@ -176,7 +172,7 @@ class MapPickerState extends State<MapPicker> {
       _circles.add(Circle(
         circleId: CircleId(circleIdVal),
         center: point,
-        radius: 150,
+        radius: radius,
         fillColor: Colors.grey.withOpacity(0.5),
         strokeWidth: 3,
         strokeColor: Colors.grey));
@@ -227,77 +223,83 @@ class MapPickerState extends State<MapPicker> {
             circles: _circles,
             myLocationEnabled: true,
           ),
-          _MapFabs(
-            myLocationButtonEnabled: widget.myLocationButtonEnabled,
-            layersButtonEnabled: widget.layersButtonEnabled,
-            onToggleMapTypePressed: _onToggleMapTypePressed,
-            onMyLocationPressed: _initCurrentLocation,
-          ),
-          
+          radiusSlider(),
           pin(),
+          geoFenceRemindeAtCard(),
           locationCard(),
         ],
       ),
     );
   }
 
+  Widget geoFenceRemindeAtCard() {
+    return Positioned(
+      bottom: 115.0,
+      left:5, right:5,
+      child: geoFenceRemindeAt()
+    );
+  }
+  Key locationCardKey = Key('locationKey');
   Widget locationCard() {
     return Align(
       alignment: widget.resultCardAlignment ?? Alignment.bottomCenter,
-      child: Padding(
-        padding: widget.resultCardPadding ?? EdgeInsets.all(16.0),
-        child: Card(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          child: Consumer<LocationProvider>(
-              builder: (context, locationProvider, _) {
-            return Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  Flexible(
-                    flex: 20,
-                    child: FutureLoadingBuilder<Map<String, String>>(
-                      future: getAddress(locationProvider.lastIdleLocation),
-                      mutable: true,
-                      loadingIndicator: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: <Widget>[
-                          CircularProgressIndicator(),
-                        ],
-                      ),
-                      builder: (context, data) {
-                        _address = data["address"];
-                        _placeId = data["placeId"];
-                        return Text(
-                          _address ??
-                              S.of(context)?.unnamedPlace ??
-                              'Unnamed place',
-                          style: TextStyle(fontSize: 18),
-                        );
-                      },
+      child: Container(
+        height:110,
+        child:Card(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        child: Consumer<LocationProvider>(
+            builder: (context, locationProvider, _) {
+          return Padding(
+            padding: const EdgeInsets.only(top:5.0, left:10, right:10, bottom:5),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                Flexible(
+                  flex: 20,
+                  child: FutureLoadingBuilder<Map<String, String>>(
+                    future: getAddress(locationProvider.lastIdleLocation),
+                    mutable: true,
+                    loadingIndicator: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        CircularProgressIndicator(),
+                      ],
                     ),
-                  ),
-                  Spacer(),
-                  FloatingActionButton(
-                    onPressed: () {
-                      Navigator.of(context).pop({
-                        'location': LocationResult(
-                          latLng: locationProvider.lastIdleLocation,
-                          address: _address,
-                          placeId: _placeId,
-                        ),
-                      });
+                    builder: (context, data) {
+                      _address = data["address"];
+                      _placeId = data["placeId"];
+                      return Text(
+                        _address ??
+                            S.of(context)?.unnamedPlace ??
+                            'Unnamed place',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400)
+                      );
                     },
-                    child: widget.resultCardConfirmIcon ??
-                        Icon(Icons.arrow_forward),
                   ),
-                ],
-              ),
-            );
-          }),
-        ),
-      ),
+                ),
+                Spacer(),
+                FloatingActionButton(
+                  onPressed: () {
+                    
+                    Navigator.of(context).pop({
+                      'location': {
+                        'latLng': LatLng(locationProvider.lastIdleLocation.latitude, 
+                        locationProvider.lastIdleLocation.longitude) ,
+                        'address': "$locationReminderAt$_address",
+                        'notificationAt': locationReminderAt,
+                        'placeId': _placeId,
+                        'radius' : radius
+                      },
+                    });
+                  },
+                  child: widget.resultCardConfirmIcon ??
+                      Icon(Icons.arrow_forward),
+                ),
+              ],
+            ),
+          );
+        }),
+      )),
     );
   }
 
@@ -351,6 +353,76 @@ class MapPickerState extends State<MapPicker> {
       ),
     );
   }
+  
+  Widget radiusSlider() {
+    return Container(
+      margin: const EdgeInsets.only(top: kToolbarHeight+10, left:15, right:15),
+      child: FluidSlider(
+        min: 150,
+        max: 300,
+        sliderColor: Theme.of(context).primaryColor,
+        textColor: Theme.of(context).textTheme.headline6.color,
+        onValue: (value) {
+            
+        },
+        onSlide: (value) {
+          setState(() => radius = value.toDouble());
+          _setCircles(_lastMapPosition);
+        },
+      )
+    );
+  }
+  
+  Widget geoFenceRemindeAt() {
+    return Padding(
+        padding: const EdgeInsets.all(5),
+        child: Container(
+          height: 50,
+          width:MediaQuery.of(context).size.width,
+          decoration: BoxDecoration(
+            color: Theme.of(context).primaryColor,
+            borderRadius: BorderRadius.circular(5)
+
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+                Container(
+                child: FlatButton(
+                  onPressed: (){
+                    setState(() => locationReminderAt = 'Leave: ');
+                  },
+                  child: Text(
+                    'When I leave',
+                    style: TextStyle(
+                      color: locationReminderAt != 'Leave: ' ? Theme.of(context).textTheme.headline6.color.withOpacity(0.6) : 
+                      Theme.of(context).textTheme.headline6.color
+                    ),
+                  ),
+                )
+              ),
+              Container(width:1, height: 25, color:Colors.black),
+              Container(
+                child: FlatButton(
+                  onPressed: (){
+                    setState(() => locationReminderAt = 'Arrive: ');
+                  },
+                  child: Text(
+                    'When I Arrive at',
+                    style: TextStyle(
+                      color: locationReminderAt != 'Arrive: ' ? Theme.of(context).textTheme.headline6.color.withOpacity(0.6) : 
+                      Theme.of(context).textTheme.headline6.color
+                    ),
+                  ),
+                )
+              ),
+          
+            ],
+          ),
+        )
+      );
+  }
+
 
   var dialogOpen;
 
@@ -441,39 +513,6 @@ class MapPickerState extends State<MapPicker> {
     );
   }
 
-  // TODO: 9/12/2020 this is no longer needed, remove in the next release
-  Future _checkGps() async {
-    if (!(await isLocationServiceEnabled())) {
-      if (Theme.of(context).platform == TargetPlatform.android) {
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: Text(S.of(context)?.cant_get_current_location ??
-                  "Can't get current location"),
-              content: Text(S
-                      .of(context)
-                      ?.please_make_sure_you_enable_gps_and_try_again ??
-                  'Please make sure you enable GPS and try again'),
-              actions: <Widget>[
-                FlatButton(
-                  child: Text('Ok'),
-                  onPressed: () {
-                    final AndroidIntent intent = AndroidIntent(
-                        action: 'android.settings.LOCATION_SOURCE_SETTINGS');
-
-                    intent.launch();
-                    Navigator.of(context, rootNavigator: true).pop();
-                  },
-                ),
-              ],
-            );
-          },
-        );
-      }
-    }
-  }
 }
 
 class _MapFabs extends StatelessWidget {
