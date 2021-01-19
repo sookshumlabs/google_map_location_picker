@@ -234,9 +234,13 @@ class MapPickerState extends State<MapPicker> {
   Key locationCardKey = Key('locationKey');
   Color primaryColor = Color(0xFF76D4F4);
   bool showRadiusSlider = false;
-  double height = 200;
+  double height = 220;
+  double _defaultHight = 220;
+  double _expandedHeight = 400;
 
   Widget locationCard() {
+    print(height);
+
     return Align(
       alignment: widget.resultCardAlignment ?? Alignment.bottomCenter,
       child: Container(
@@ -248,8 +252,8 @@ class MapPickerState extends State<MapPicker> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(10),
-            topRight: Radius.circular(10),
+            topLeft: Radius.circular(30),
+            topRight: Radius.circular(30),
           ),
           boxShadow: [
             BoxShadow(
@@ -265,53 +269,49 @@ class MapPickerState extends State<MapPicker> {
             return Padding(
               padding: const EdgeInsets.only(top: 5.0, left: 10, right: 10, bottom: 5),
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                // mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
-                  Flexible(
-                    flex: 20,
-                    child: FutureLoadingBuilder<Map<String, String>>(
-                      future: getAddress(locationProvider.lastIdleLocation),
-                      mutable: true,
-                      loadingIndicator: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: <Widget>[
-                          CircularProgressIndicator(),
-                        ],
-                      ),
-                      builder: (context, data) {
-                        _address = data["address"];
-                        _placeId = data["placeId"];
-
-                        return Container(
-                          decoration: BoxDecoration(
-                            color: Color(0xFFF9FAFA),
-                            borderRadius: BorderRadius.circular(5),
-                          ),
-                          margin: EdgeInsets.all(10),
-                          padding: EdgeInsets.all(10),
-                          width: MediaQuery.of(context).size.width,
-                          child: Stack(
-                            children: [
-                              Container(
-                                width: MediaQuery.of(context).size.width * .5,
-                                child: Text(
-                                  _address ?? S.of(context)?.unnamedPlace ?? 'Unnamed place',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontFamily: 'Mulish',
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
+                  FutureLoadingBuilder<Map<String, String>>(
+                    future: getAddress(locationProvider.lastIdleLocation),
+                    mutable: true,
+                    loadingIndicator: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        CircularProgressIndicator(),
+                      ],
                     ),
+                    builder: (context, data) {
+                      _address = data["address"];
+                      _placeId = data["placeId"];
+
+                      return Container(
+                        decoration: BoxDecoration(
+                          color: Color(0xFFF9FAFA),
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        margin: EdgeInsets.all(10),
+                        padding: EdgeInsets.all(10),
+                        child: Container(
+                          child: Text(
+                            _address ?? S.of(context)?.unnamedPlace ?? 'Unnamed place',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontFamily: 'Mulish',
+                              fontWeight: FontWeight.w600,
+                            ),
+                            softWrap: true,
+                            maxLines: 2,
+                            // overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  Spacer(),
+                  Divider(
+                    height: 10,
                   ),
                   Container(
-                    height: 40,
                     margin: EdgeInsets.only(left: 20, right: 20),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -328,12 +328,12 @@ class MapPickerState extends State<MapPicker> {
                           onTap: () async {
                             setState(() {
                               showRadiusSlider = !showRadiusSlider;
-                              height = 400;
+                              height = !showRadiusSlider ? _defaultHight : _expandedHeight;
                             });
                           },
                           child: Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            crossAxisAlignment: CrossAxisAlignment.end,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               //Text( reminderAt.reduce((String value, element) => value + ',' + element.toString()), style:TextStyle(color:_textColor)),
                               Container(
@@ -341,7 +341,7 @@ class MapPickerState extends State<MapPicker> {
                                 padding: EdgeInsets.only(bottom: 5),
                                 width: MediaQuery.of(context).size.width * 0.45,
                                 child: Text(
-                                  radius.toString(),
+                                  radius.round().toString(),
                                   style: TextStyle(
                                     color: primaryColor,
                                     fontFamily: 'mulish',
@@ -365,12 +365,13 @@ class MapPickerState extends State<MapPicker> {
                     ),
                   ),
                   if (showRadiusSlider) ...[
+                    // radiusSlider()
                     Container(
                       decoration: BoxDecoration(
                         color: Color(0xFFF9FAFA),
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      // margin: EdgeInsets.all(10),
+                      margin: EdgeInsets.all(10),
                       padding: EdgeInsets.all(5),
                       width: MediaQuery.of(context).size.width,
                       child: Container(
@@ -381,7 +382,7 @@ class MapPickerState extends State<MapPicker> {
                               width: MediaQuery.of(context).size.width,
                               child: ListTile(
                                 title: Text(
-                                  150.toString(),
+                                  150.round().toString(),
                                   style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w600,
@@ -397,10 +398,11 @@ class MapPickerState extends State<MapPicker> {
                                     : null,
                                 onTap: () {
                                   setState(() {
-                                    radius = 150.0;
+                                    radius = 150;
                                     showRadiusSlider = !showRadiusSlider;
-                                    height = 220;
+                                    height = !showRadiusSlider ? _defaultHight : _expandedHeight;
                                   });
+                                  _setCircles(_lastMapPosition);
                                 },
                               ),
                             ),
@@ -408,7 +410,7 @@ class MapPickerState extends State<MapPicker> {
                               width: MediaQuery.of(context).size.width,
                               child: ListTile(
                                 title: Text(
-                                  200.toString(),
+                                  200.round().toString(),
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
@@ -425,10 +427,11 @@ class MapPickerState extends State<MapPicker> {
                                     : null,
                                 onTap: () {
                                   setState(() {
-                                    radius = 200.0;
-                                    height = 220;
+                                    radius = 200;
                                     showRadiusSlider = !showRadiusSlider;
+                                    height = !showRadiusSlider ? _defaultHight : _expandedHeight;
                                   });
+                                  _setCircles(_lastMapPosition);
                                 },
                               ),
                             ),
@@ -436,7 +439,7 @@ class MapPickerState extends State<MapPicker> {
                               width: MediaQuery.of(context).size.width,
                               child: ListTile(
                                 title: Text(
-                                  250.toString(),
+                                  250.round().toString(),
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
@@ -453,10 +456,11 @@ class MapPickerState extends State<MapPicker> {
                                     : null,
                                 onTap: () {
                                   setState(() {
-                                    radius = 250.0;
-                                    height = 220;
                                     showRadiusSlider = !showRadiusSlider;
+                                    radius = 250;
+                                    height = !showRadiusSlider ? _defaultHight : _expandedHeight;
                                   });
+                                  _setCircles(_lastMapPosition);
                                 },
                               ),
                             ),
@@ -464,7 +468,7 @@ class MapPickerState extends State<MapPicker> {
                               width: MediaQuery.of(context).size.width,
                               child: ListTile(
                                 title: Text(
-                                  300.toString(),
+                                  300.round().toString(),
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
@@ -481,10 +485,11 @@ class MapPickerState extends State<MapPicker> {
                                     : null,
                                 onTap: () {
                                   setState(() {
-                                    radius = 300.0;
-                                    height = 220;
+                                    radius = 300;
                                     showRadiusSlider = !showRadiusSlider;
+                                    height = !showRadiusSlider ? _defaultHight : _expandedHeight;
                                   });
+                                  _setCircles(_lastMapPosition);
                                 },
                               ),
                             ),
@@ -493,57 +498,62 @@ class MapPickerState extends State<MapPicker> {
                       ),
                     ),
                   ],
-                  Center(
-                    child: Container(
-                      width: MediaQuery.of(context).size.width,
-                      padding: EdgeInsets.only(left: 10, right: 10, bottom: 10),
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(30),
-                          gradient: LinearGradient(
-                            colors: [
-                              Color(0xFF34B8E5),
-                              Color(0xFF5695E6),
-                            ],
-                          ),
-                        ),
-                        child: Container(
-                          height: 50,
-                          child: OutlineButton(
-                            child: Text(
-                              'Select Location',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                fontFamily: 'Mulish',
-                                color: Colors.white,
-                              ),
+                  if (!showRadiusSlider) ...[
+                    SizedBox(
+                      height: 20,
+                    ),
+                    Center(
+                      child: Container(
+                        width: MediaQuery.of(context).size.width,
+                        padding: EdgeInsets.only(left: 10, right: 10, top: 0, bottom: 10),
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(30),
+                            gradient: LinearGradient(
+                              colors: [
+                                Color(0xFF34B8E5),
+                                Color(0xFF5695E6),
+                              ],
                             ),
-                            onPressed: () async {
-                              if (_address != null) {
-                                Navigator.of(context).pop({
-                                  'location': {
-                                    'latLng': LatLng(locationProvider.lastIdleLocation.latitude,
-                                        locationProvider.lastIdleLocation.longitude),
-                                    'address': "$_address",
-                                    'notificationAt': locationReminderAt,
-                                    'placeId': _placeId,
-                                    'radius': radius
-                                  },
-                                });
-                              }
-                            },
-                            color: Color(0xFF76D4F4),
-                            highlightedBorderColor: Colors.transparent,
-                            borderSide: BorderSide(color: Colors.transparent),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30.0),
+                          ),
+                          child: Container(
+                            height: 50,
+                            child: OutlineButton(
+                              child: Text(
+                                'Select Location',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  fontFamily: 'Mulish',
+                                  color: Colors.white,
+                                ),
+                              ),
+                              onPressed: () async {
+                                if (_address != null) {
+                                  Navigator.of(context).pop({
+                                    'location': {
+                                      'latLng': LatLng(locationProvider.lastIdleLocation.latitude,
+                                          locationProvider.lastIdleLocation.longitude),
+                                      'address': "$_address",
+                                      'notificationAt': locationReminderAt,
+                                      'placeId': _placeId,
+                                      'radius': radius
+                                    },
+                                  });
+                                }
+                              },
+                              color: Color(0xFF76D4F4),
+                              highlightedBorderColor: Colors.transparent,
+                              borderSide: BorderSide(color: Colors.transparent),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30.0),
+                              ),
                             ),
                           ),
                         ),
                       ),
                     ),
-                  ),
+                  ],
                 ],
               ),
             );
@@ -611,18 +621,19 @@ class MapPickerState extends State<MapPicker> {
 
   Widget radiusSlider() {
     return Container(
-        margin: const EdgeInsets.only(top: kToolbarHeight + 10, left: 15, right: 15),
-        child: FluidSlider(
-          min: 150,
-          max: 300,
-          sliderColor: Theme.of(context).primaryColor,
-          textColor: Theme.of(context).textTheme.headline6.color,
-          onValue: (value) {},
-          onSlide: (value) {
-            setState(() => radius = value.toDouble());
-            _setCircles(_lastMapPosition);
-          },
-        ));
+      margin: const EdgeInsets.only(top: 10, left: 15, right: 15),
+      child: FluidSlider(
+        min: 150,
+        max: 300,
+        sliderColor: primaryColor,
+        textColor: Theme.of(context).textTheme.headline6.color,
+        onValue: (value) {},
+        onSlide: (value) {
+          setState(() => radius = value.toDouble());
+          _setCircles(_lastMapPosition);
+        },
+      ),
+    );
   }
 
   Widget geoFenceRemindeAt() {

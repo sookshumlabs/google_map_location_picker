@@ -65,24 +65,29 @@ class SearchInputState extends State<SearchInput> {
       decoration: widget.boxDecoration ??
           BoxDecoration(
             borderRadius: BorderRadius.circular(16),
-            color: Theme.of(context).brightness == Brightness.dark
-                ? Colors.black54
-                : Colors.white,
+            color: Color(0xFFB3B2B2),
           ),
       padding: EdgeInsets.symmetric(horizontal: 8),
       child: Row(
         children: <Widget>[
-          Icon(Icons.search),
           SizedBox(width: 8),
           Expanded(
             child: TextField(
               controller: editController,
               decoration: InputDecoration(
-                hintText: widget.hintText ??
-                    S.of(context)?.search_place ??
-                    'Search place',
+                hintText: widget.hintText ?? S.of(context)?.search_place ?? 'Search place',
                 border: InputBorder.none,
+                hintStyle: TextStyle(
+                    color: Color(0xFF818181),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    fontFamily: 'Mulish'),
               ),
+              style: TextStyle(
+                  color: Color(0xFF818181),
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  fontFamily: 'Mulish'),
               onChanged: (value) {
                 setState(() {
                   hasSearchEntry = value.isNotEmpty;
@@ -91,17 +96,27 @@ class SearchInputState extends State<SearchInput> {
             ),
           ),
           SizedBox(width: 8),
-          hasSearchEntry
-              ? GestureDetector(
-                  child: Icon(Icons.clear),
-                  onTap: () {
-                    editController.clear();
-                    setState(() {
-                      hasSearchEntry = false;
-                    });
-                  },
-                )
-              : SizedBox(),
+          GestureDetector(
+            child: Container(
+              decoration: BoxDecoration(
+                color: Color(0xFF818181),
+                shape: BoxShape.circle,
+              ),
+              child: Padding(
+                padding: EdgeInsets.all(3),
+                child: Icon(
+                  Icons.clear_sharp,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+            onTap: () {
+              editController.clear();
+              setState(() {
+                hasSearchEntry = false;
+              });
+            },
+          )
         ],
       ),
     );

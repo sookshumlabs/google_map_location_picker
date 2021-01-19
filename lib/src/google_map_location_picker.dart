@@ -158,15 +158,14 @@ class LocationPickerState extends State<LocationPicker> {
         ? "&components=country:${countries.sublist(0, min(countries.length, 5)).join('|country:')}"
         : "";
 
-    var endpoint =
-        "https://maps.googleapis.com/maps/api/place/autocomplete/json?" +
-            "key=${widget.apiKey}&" +
-            "input={$place}$regionParam&sessiontoken=$sessionToken&" +
-            "language=${widget.language}";
+    var endpoint = "https://maps.googleapis.com/maps/api/place/autocomplete/json?" +
+        "key=${widget.apiKey}&" +
+        "input={$place}$regionParam&sessiontoken=$sessionToken&" +
+        "language=${widget.language}";
 
     if (locationResult != null) {
-      endpoint += "&location=${locationResult.latLng.latitude}," +
-          "${locationResult.latLng.longitude}";
+      endpoint +=
+          "&location=${locationResult.latLng.latitude}," + "${locationResult.latLng.longitude}";
     }
 
     LocationUtils.getAppHeaders()
@@ -222,8 +221,7 @@ class LocationPickerState extends State<LocationPicker> {
         .then((headers) => http.get(endpoint, headers: headers))
         .then((response) {
       if (response.statusCode == 200) {
-        Map<String, dynamic> location =
-            jsonDecode(response.body)['result']['geometry']['location'];
+        Map<String, dynamic> location = jsonDecode(response.body)['result']['geometry']['location'];
 
         LatLng latLng = LatLng(location['lat'], location['lng']);
 
@@ -291,8 +289,7 @@ class LocationPickerState extends State<LocationPicker> {
         .then((response) {
       if (response.statusCode == 200) {
         nearbyPlaces.clear();
-        for (Map<String, dynamic> item
-            in jsonDecode(response.body)['results']) {
+        for (Map<String, dynamic> item in jsonDecode(response.body)['results']) {
           NearbyPlace nearbyPlace = NearbyPlace();
 
           nearbyPlace.name = item['name'];
@@ -336,8 +333,7 @@ class LocationPickerState extends State<LocationPicker> {
         road = 'REQUEST DENIED = please see log for more details';
         print(responseJson['error_message']);
       } else {
-        road =
-            responseJson['results'][0]['address_components'][0]['short_name'];
+        road = responseJson['results'][0]['address_components'][0]['short_name'];
       }
 
 //      String locality =
@@ -389,13 +385,69 @@ class LocationPickerState extends State<LocationPicker> {
           appBar: AppBar(
             automaticallyImplyLeading: false,
             elevation: 0,
-            backgroundColor: widget.appBarColor,
+            backgroundColor: Colors.white,
             key: appBarKey,
-            title: SearchInput(
-              (input) => searchPlace(input),
-              key: searchInputKey,
-              boxDecoration: widget.searchBarBoxDecoration,
-              hintText: widget.hintText,
+            // title: SearchInput(
+            //   (input) => searchPlace(input),
+            //   key: searchInputKey,
+            //   boxDecoration: widget.searchBarBoxDecoration,
+            //   hintText: widget.hintText,
+            // ),
+            leading: IconButton(
+              key: Key('journey_to_dashboard_nav'),
+              icon: Icon(
+                Icons.arrow_back,
+                color: Colors.black,
+              ),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            title: Text(
+              'Select location',
+              style: TextStyle(
+                fontSize: 18,
+                fontFamily: 'poppien',
+                fontWeight: FontWeight.w600,
+                color: Colors.black,
+              ),
+            ),
+            bottom: PreferredSize(
+              preferredSize: Size(MediaQuery.of(context).size.width, 50),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(39),
+                    bottomRight: Radius.circular(30),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      ///blur 12pt,
+                      blurRadius: 12.0,
+
+                      ///Offsets x=0,y=5,
+                      offset: Offset(0, 3),
+
+                      ///Shadow Color
+                      color: Color(0xFF214A8119),
+                    )
+                  ],
+                ),
+                height: 60,
+                child: Padding(
+                  padding: EdgeInsets.only(left: 20, right: 20, top: 10, bottom: 10),
+                  child: SearchInput(
+                    (input) => searchPlace(input),
+                    key: searchInputKey,
+                    boxDecoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey, width: 1),
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    hintText: widget.hintText,
+                  ),
+                ),
+              ),
             ),
           ),
           body: MapPicker(
@@ -405,8 +457,7 @@ class LocationPickerState extends State<LocationPicker> {
             requiredGPS: widget.requiredGPS,
             myLocationButtonEnabled: widget.myLocationButtonEnabled,
             layersButtonEnabled: widget.layersButtonEnabled,
-            automaticallyAnimateToCurrentLocation:
-                widget.automaticallyAnimateToCurrentLocation,
+            automaticallyAnimateToCurrentLocation: widget.automaticallyAnimateToCurrentLocation,
             mapStylePath: widget.mapStylePath,
             appBarColor: widget.appBarColor,
             searchBarBoxDecoration: widget.searchBarBoxDecoration,
@@ -465,8 +516,7 @@ Future<dynamic> showLocationPicker(
           requiredGPS: requiredGPS,
           myLocationButtonEnabled: myLocationButtonEnabled,
           layersButtonEnabled: layersButtonEnabled,
-          automaticallyAnimateToCurrentLocation:
-              automaticallyAnimateToCurrentLocation,
+          automaticallyAnimateToCurrentLocation: automaticallyAnimateToCurrentLocation,
           mapStylePath: mapStylePath,
           appBarColor: appBarColor,
           hintText: hintText,
