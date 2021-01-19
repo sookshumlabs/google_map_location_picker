@@ -2,34 +2,34 @@ PODS:
   - android_intent (0.0.1):
     - Flutter
   - Flutter (1.0.0)
-  - geolocator (5.1.5):
+  - flutter_plugin_android_lifecycle (0.0.1):
     - Flutter
-  - google_api_availability (2.0.1):
+  - "geolocator (6.0.0+4)":
     - Flutter
   - google_map_location_picker (2.1.1):
     - Flutter
   - google_maps_flutter (0.0.1):
     - Flutter
-    - GoogleMaps
+    - GoogleMaps (< 3.10)
   - GoogleMaps (2.7.0):
     - GoogleMaps/Maps (= 2.7.0)
   - GoogleMaps/Base (2.7.0)
   - GoogleMaps/Maps (2.7.0):
     - GoogleMaps/Base
-  - location_permissions (2.0.3):
+  - package_info (0.0.1):
     - Flutter
 
 DEPENDENCIES:
   - android_intent (from `.symlinks/plugins/android_intent/ios`)
   - Flutter (from `Flutter`)
+  - flutter_plugin_android_lifecycle (from `.symlinks/plugins/flutter_plugin_android_lifecycle/ios`)
   - geolocator (from `.symlinks/plugins/geolocator/ios`)
-  - google_api_availability (from `.symlinks/plugins/google_api_availability/ios`)
   - google_map_location_picker (from `.symlinks/plugins/google_map_location_picker/ios`)
   - google_maps_flutter (from `.symlinks/plugins/google_maps_flutter/ios`)
-  - location_permissions (from `.symlinks/plugins/location_permissions/ios`)
+  - package_info (from `.symlinks/plugins/package_info/ios`)
 
 SPEC REPOS:
-  https://github.com/CocoaPods/Specs.git:
+  trunk:
     - GoogleMaps
 
 EXTERNAL SOURCES:
@@ -37,27 +37,27 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/android_intent/ios"
   Flutter:
     :path: Flutter
+  flutter_plugin_android_lifecycle:
+    :path: ".symlinks/plugins/flutter_plugin_android_lifecycle/ios"
   geolocator:
     :path: ".symlinks/plugins/geolocator/ios"
-  google_api_availability:
-    :path: ".symlinks/plugins/google_api_availability/ios"
   google_map_location_picker:
     :path: ".symlinks/plugins/google_map_location_picker/ios"
   google_maps_flutter:
     :path: ".symlinks/plugins/google_maps_flutter/ios"
-  location_permissions:
-    :path: ".symlinks/plugins/location_permissions/ios"
+  package_info:
+    :path: ".symlinks/plugins/package_info/ios"
 
 SPEC CHECKSUMS:
-  android_intent: f144b3783d533cc5bc2cd04cdbd1dc2b6950bd69
+  android_intent: 367df2f1277a74e4a90e14a8ab3df3112d087052
   Flutter: 0e3d915762c693b495b44d77113d4970485de6ec
-  geolocator: 80aba2bb48f8c7dfc5a8b70b9d13fc3edc8399c4
-  google_api_availability: 163b30f802e6148c67f092aa4501c90ddd8eec8d
+  flutter_plugin_android_lifecycle: dc0b544e129eebb77a6bfb1239d4d1c673a60a35
+  geolocator: 1ae40084cc6c1586ce5ad12cfc3fd38c64d05f2f
   google_map_location_picker: 01403f2fb025f6aedf0b36b5f15eccc9415a55f1
-  google_maps_flutter: d0dd62f5a7d39bae61057eb9f52dd778d99c7c6c
+  google_maps_flutter: c7f9c73576de1fbe152a227bfd6e6c4ae8088619
   GoogleMaps: f79af95cb24d869457b1f961c93d3ce8b2f3b848
-  location_permissions: 195ff2a1182fa9029ef3f2653156961ee5a1e40b
+  package_info: 873975fc26034f0b863a300ad47e7f1ac6c7ec62
 
 PODFILE CHECKSUM: 1b66dae606f75376c5f2135a8290850eeb09ae83
 
-COCOAPODS: 1.8.4
+COCOAPODS: 1.10.0
