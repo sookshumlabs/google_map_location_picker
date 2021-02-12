@@ -232,7 +232,7 @@ class MapPickerState extends State<MapPicker> {
   }
 
   Key locationCardKey = Key('locationKey');
-  Color primaryColor = Color(0xFF76D4F4);
+  Color primaryColor = Color(0xFF003A86);
   bool showRadiusSlider = false;
   double height = 220;
   double _defaultHight = 220;
@@ -341,7 +341,7 @@ class MapPickerState extends State<MapPicker> {
                                 padding: EdgeInsets.only(bottom: 5),
                                 width: MediaQuery.of(context).size.width * 0.45,
                                 child: Text(
-                                  radius.round().toString(),
+                                  radius.round().toString() + ' m',
                                   style: TextStyle(
                                     color: primaryColor,
                                     fontFamily: 'mulish',
@@ -382,7 +382,7 @@ class MapPickerState extends State<MapPicker> {
                               width: MediaQuery.of(context).size.width,
                               child: ListTile(
                                 title: Text(
-                                  150.round().toString(),
+                                  150.round().toString() + ' m',
                                   style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w600,
@@ -410,7 +410,7 @@ class MapPickerState extends State<MapPicker> {
                               width: MediaQuery.of(context).size.width,
                               child: ListTile(
                                 title: Text(
-                                  200.round().toString(),
+                                  200.round().toString() + ' m',
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
@@ -439,7 +439,7 @@ class MapPickerState extends State<MapPicker> {
                               width: MediaQuery.of(context).size.width,
                               child: ListTile(
                                 title: Text(
-                                  250.round().toString(),
+                                  250.round().toString() + ' m',
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
@@ -468,7 +468,7 @@ class MapPickerState extends State<MapPicker> {
                               width: MediaQuery.of(context).size.width,
                               child: ListTile(
                                 title: Text(
-                                  300.round().toString(),
+                                  300.round().toString() + 'm',
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
@@ -511,8 +511,8 @@ class MapPickerState extends State<MapPicker> {
                             borderRadius: BorderRadius.circular(30),
                             gradient: LinearGradient(
                               colors: [
-                                Color(0xFF34B8E5),
-                                Color(0xFF5695E6),
+                                Color(0xFF0066B7),
+                                Color(0xFF003A86),
                               ],
                             ),
                           ),
