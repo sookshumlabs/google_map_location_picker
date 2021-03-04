@@ -14,16 +14,15 @@ dependencies:
 
   flutter_localizations:
     sdk: flutter
-  intl: '>=0.16.0 <=0.16.1'
-  intl_translation: '>=0.17.9 <=0.17.10'
+  intl: any
 
-  google_maps_flutter: ^0.5.32
-  geolocator: ^6.0.0+4
+  google_maps_flutter: 
+  geolocator: 
   android_intent: ^0.3.7+3
-  provider: ^4.3.2+2
+  provider: 
   http: ^0.12.2
   stack_trace: ^1.9.5
-  package_info: '>=0.4.0+14 <2.0.0'
+  package_info: 
   fluid_slider:
   
 dev_dependencies:
