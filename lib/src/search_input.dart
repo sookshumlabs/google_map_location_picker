@@ -65,7 +65,7 @@ class SearchInputState extends State<SearchInput> {
       decoration: widget.boxDecoration ??
           BoxDecoration(
             borderRadius: BorderRadius.circular(16),
-            color: Color(0xFFB3B2B2),
+            // color: Color(0xFFB3B2B2),
           ),
       padding: EdgeInsets.symmetric(horizontal: 8),
       child: Row(
@@ -78,16 +78,18 @@ class SearchInputState extends State<SearchInput> {
                 hintText: widget.hintText ?? S.of(context)?.search_place ?? 'Search place',
                 border: InputBorder.none,
                 hintStyle: TextStyle(
-                    color: Color(0xFF818181),
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    fontFamily: 'Mulish'),
-              ),
-              style: TextStyle(
                   color: Color(0xFF818181),
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  fontFamily: 'Mulish'),
+                  fontFamily: 'Mulish',
+                ),
+              ),
+              style: TextStyle(
+                color: Color(0xFF818181),
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                fontFamily: 'Mulish',
+              ),
               onChanged: (value) {
                 setState(() {
                   hasSearchEntry = value.isNotEmpty;
@@ -107,6 +109,7 @@ class SearchInputState extends State<SearchInput> {
                 child: Icon(
                   Icons.clear_sharp,
                   color: Colors.white,
+                  size: 15,
                 ),
               ),
             ),

@@ -132,7 +132,10 @@ class LocationPickerState extends State<LocationPicker> {
                 Expanded(
                   child: Text(
                     S.of(context)?.finding_place ?? 'Finding place...',
-                    style: TextStyle(fontSize: 16),
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Theme.of(context).textTheme.bodyText1.color.withOpacity(.6),
+                    ),
                   ),
                 )
               ],
@@ -385,19 +388,17 @@ class LocationPickerState extends State<LocationPicker> {
           appBar: AppBar(
             automaticallyImplyLeading: false,
             elevation: 0,
-            backgroundColor: Colors.white,
+            // backgroundColor: Colors.white,
+            backgroundColor: Theme.of(context).brightness == Brightness.dark
+                ? Theme.of(context).appBarTheme.color
+                : Colors.white,
             key: appBarKey,
-            // title: SearchInput(
-            //   (input) => searchPlace(input),
-            //   key: searchInputKey,
-            //   boxDecoration: widget.searchBarBoxDecoration,
-            //   hintText: widget.hintText,
-            // ),
             leading: IconButton(
               key: Key('journey_to_dashboard_nav'),
               icon: Icon(
                 Icons.arrow_back,
-                color: Colors.black,
+                color:
+                    Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black,
               ),
               onPressed: () {
                 Navigator.of(context).pop();
@@ -407,16 +408,19 @@ class LocationPickerState extends State<LocationPicker> {
               'Select location',
               style: TextStyle(
                 fontSize: 18,
-                fontFamily: 'poppien',
                 fontWeight: FontWeight.w600,
-                color: Colors.black,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Theme.of(context).textTheme.bodyText1.color
+                    : Colors.black,
               ),
             ),
             bottom: PreferredSize(
               preferredSize: Size(MediaQuery.of(context).size.width, 50),
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Theme.of(context).appBarTheme.color
+                      : Colors.white,
                   borderRadius: BorderRadius.only(
                     bottomLeft: Radius.circular(39),
                     bottomRight: Radius.circular(30),
@@ -508,7 +512,6 @@ Future<dynamic> showLocationPicker(
   final results = await Navigator.of(context).push(
     MaterialPageRoute<dynamic>(
       builder: (BuildContext context) {
-        // print('[LocationPicker] [countries] ${countries.join(', ')}');
         return LocationPicker(
           apiKey,
           initialCenter: initialCenter,

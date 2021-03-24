@@ -162,7 +162,6 @@ class MapPickerState extends State<MapPicker> {
   void _setCircles(LatLng point) {
     final String circleIdVal = 'circle_id_$_circleIdCounter';
     _circleIdCounter++;
-    print('Circle | Latitude: ${point.latitude}  Longitude: ${point.longitude}  Radius: 150');
     setState(() {
       _circles.clear();
       _circles.add(
@@ -211,46 +210,43 @@ class MapPickerState extends State<MapPicker> {
             onCameraMoveStarted: () {
               print("onCameraMoveStarted#_lastMapPosition = $_lastMapPosition");
             },
-//            onTap: (latLng) {
-//              clearOverlay();
-//            },
             mapType: _currentMapType,
             circles: _circles,
             myLocationEnabled: true,
           ),
-          // radiusSlider(),
           pin(),
-          // geoFenceRemindeAtCard(),
+          // geoFenceReminderAtCard(),
           locationCard(),
         ],
       ),
     );
   }
 
-  Widget geoFenceRemindeAtCard() {
-    return Positioned(bottom: 115.0, left: 5, right: 5, child: geoFenceRemindeAt());
+  Widget geoFenceReminderAtCard() {
+    return Positioned(bottom: 115.0, left: 5, right: 5, child: geoFenceReminderAt());
   }
 
   Key locationCardKey = Key('locationKey');
   Color primaryColor = Color(0xFF003A86);
   bool showRadiusSlider = false;
-  double height = 220;
-  double _defaultHight = 220;
-  double _expandedHeight = 400;
+  double height = 250;
+  double _defaultHight = 250;
+  double _expandedHeight = 450;
 
   Widget locationCard() {
-    print(height);
-
     return Align(
       alignment: widget.resultCardAlignment ?? Alignment.bottomCenter,
       child: Container(
         constraints: BoxConstraints(
-          minHeight: 80,
+          minHeight: 100,
           maxHeight: height,
           minWidth: MediaQuery.of(context).size.width,
         ),
         decoration: BoxDecoration(
-          color: Colors.white,
+          // color: Theme.of(context).cardTheme.color,
+          color: Theme.of(context).brightness == Brightness.dark
+              ? Theme.of(context).cardColor
+              : Color(0xFFF9FAFA),
           borderRadius: BorderRadius.only(
             topLeft: Radius.circular(30),
             topRight: Radius.circular(30),
@@ -277,16 +273,19 @@ class MapPickerState extends State<MapPicker> {
                     loadingIndicator: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
+                        SizedBox(height: 10),
                         CircularProgressIndicator(),
                       ],
                     ),
                     builder: (context, data) {
                       _address = data["address"];
                       _placeId = data["placeId"];
-
                       return Container(
                         decoration: BoxDecoration(
-                          color: Color(0xFFF9FAFA),
+                          // color: Color(0xFFF9FAFA),
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Theme.of(context).cardColor
+                              : Color(0xFFF9FAFA),
                           borderRadius: BorderRadius.circular(5),
                         ),
                         margin: EdgeInsets.all(10),
@@ -343,7 +342,9 @@ class MapPickerState extends State<MapPicker> {
                                 child: Text(
                                   radius.round().toString() + ' m',
                                   style: TextStyle(
-                                    color: primaryColor,
+                                    color: Theme.of(context).brightness == Brightness.dark
+                                        ? Colors.white
+                                        : primaryColor,
                                     fontFamily: 'mulish',
                                     fontWeight: FontWeight.w600,
                                     fontSize: 16,
@@ -368,7 +369,10 @@ class MapPickerState extends State<MapPicker> {
                     // radiusSlider()
                     Container(
                       decoration: BoxDecoration(
-                        color: Color(0xFFF9FAFA),
+                        // color: Color(0xFFF9FAFA),
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Theme.of(context).cardColor
+                            : Color(0xFFF9FAFA),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       margin: EdgeInsets.all(10),
@@ -554,6 +558,9 @@ class MapPickerState extends State<MapPicker> {
                       ),
                     ),
                   ],
+                  SizedBox(
+                    height: 10,
+                  ),
                 ],
               ),
             );
@@ -594,12 +601,6 @@ class MapPickerState extends State<MapPicker> {
               size: 40,
               color: Color(0xFF76D4F4),
             ),
-            // Image.asset(
-            //   'assets/location_icon.png',
-            //   key: UniqueKey(),
-            //   height: 24,
-            //   color: Color(0xFF76D4F4),
-            // ),
             Container(
               width: 10,
               height: 10,
@@ -636,7 +637,7 @@ class MapPickerState extends State<MapPicker> {
     );
   }
 
-  Widget geoFenceRemindeAt() {
+  Widget geoFenceReminderAt() {
     return Padding(
         padding: const EdgeInsets.all(5),
         child: Container(
