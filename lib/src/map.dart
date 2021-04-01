@@ -7,6 +7,9 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:geolocator/geolocator.dart';
+import 'package:geolocator/geolocator.dart' as geoLocator;
+import 'package:geolocator/geolocator.dart';
+
 import 'package:google_map_location_picker/generated/l10n.dart';
 import 'package:google_map_location_picker/src/providers/location_provider.dart';
 import 'package:google_map_location_picker/src/slider.dart';
@@ -90,7 +93,7 @@ class MapPickerState extends State<MapPicker> {
   Future<void> _initCurrentLocation() async {
     Position currentPosition;
     try {
-      currentPosition = await getCurrentPosition();
+      currentPosition = await Geolocator.getCurrentPosition();
       d("position = $currentPosition");
 
       setState(() => _currentPosition = currentPosition);
@@ -576,8 +579,8 @@ class MapPickerState extends State<MapPicker> {
           'https://maps.googleapis.com/maps/api/geocode/json?latlng=${location?.latitude},${location?.longitude}'
           '&key=${widget.apiKey}&language=${widget.language}';
 
-      var response =
-          jsonDecode((await http.get(endPoint, headers: await LocationUtils.getAppHeaders())).body);
+      var response = jsonDecode(
+          (await http.get(Uri.parse(endPoint), headers: await LocationUtils.getAppHeaders())).body);
 
       return {
         "placeId": response['results'][0]['place_id'],
@@ -683,7 +686,7 @@ class MapPickerState extends State<MapPicker> {
   var dialogOpen;
 
   Future _checkGeolocationPermission() async {
-    final geolocationStatus = await checkPermission();
+    final geolocationStatus = await Geolocator.checkPermission();
     d("geolocationStatus = $geolocationStatus");
 
     if (geolocationStatus == LocationPermission.denied && dialogOpen == null) {
@@ -753,7 +756,7 @@ class MapPickerState extends State<MapPicker> {
                 child: Text(S.of(context)?.ok ?? 'Ok'),
                 onPressed: () {
                   Navigator.of(context, rootNavigator: true).pop();
-                  openAppSettings();
+                  Geolocator.openAppSettings();
                   dialogOpen = null;
                 },
               ),
