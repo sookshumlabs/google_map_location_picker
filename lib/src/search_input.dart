@@ -95,6 +95,9 @@ class SearchInputState extends State<SearchInput> {
                   hasSearchEntry = value.isNotEmpty;
                 });
               },
+              onSubmitted: (_) {
+                editController.clear();
+              },
             ),
           ),
           SizedBox(width: 8),
