@@ -40,6 +40,9 @@ class MapPicker extends StatefulWidget {
     this.resultCardDecoration,
     this.resultCardPadding,
     this.language,
+    this.existingLocationName,
+    this.geofenceRadius,
+    this.locationPickerType,
   }) : super(key: key);
 
   final String apiKey;
@@ -63,7 +66,9 @@ class MapPicker extends StatefulWidget {
   final EdgeInsets resultCardPadding;
 
   final String language;
-
+  final dynamic locationPickerType;
+  final dynamic existingLocationName;
+  final dynamic geofenceRadius;
   @override
   MapPickerState createState() => MapPickerState();
 }
@@ -82,6 +87,8 @@ class MapPickerState extends State<MapPicker> {
   String _address;
 
   String _placeId;
+
+  double radius = 150;
 
   void _onToggleMapTypePressed() {
     final MapType nextType = MapType.values[(_currentMapType.index + 1) % MapType.values.length];
@@ -128,6 +135,11 @@ class MapPickerState extends State<MapPicker> {
         _mapStyle = string;
       });
     }
+    if (widget.locationPickerType == 'update') {
+      setState(() {
+        radius = widget.geofenceRadius ?? 150;
+      });
+    }
   }
 
   @override
@@ -158,7 +170,6 @@ class MapPickerState extends State<MapPicker> {
   Set<Circle> _circles = HashSet<Circle>();
 //ids
   int _circleIdCounter = 1;
-  double radius = 150;
   dynamic locationReminderAt = '';
 
   // Set circles as points to the map

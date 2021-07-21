@@ -38,6 +38,9 @@ class LocationPicker extends StatefulWidget {
     this.resultCardPadding,
     this.countries,
     this.language = 'en',
+    this.existingLocationName,
+    this.geofenceRadius,
+    this.locationPickerType,
   });
 
   final String apiKey;
@@ -62,7 +65,9 @@ class LocationPicker extends StatefulWidget {
   final EdgeInsets resultCardPadding;
 
   final String language;
-
+  final dynamic locationPickerType;
+  final dynamic existingLocationName;
+  final dynamic geofenceRadius;
   @override
   LocationPickerState createState() => LocationPickerState();
 }
@@ -473,6 +478,9 @@ class LocationPickerState extends State<LocationPicker> {
             resultCardPadding: widget.resultCardPadding,
             key: mapKey,
             language: widget.language,
+            geofenceRadius: widget.geofenceRadius,
+            locationPickerType: widget.locationPickerType,
+            existingLocationName: widget.existingLocationName,
           ),
         );
       }),
@@ -509,6 +517,9 @@ Future<dynamic> showLocationPicker(
   EdgeInsetsGeometry resultCardPadding,
   Decoration resultCardDecoration,
   String language,
+  dynamic locationPickerType,
+  dynamic existingLocationName,
+  dynamic geofenceRadius,
 }) async {
   final results = await Navigator.of(context).push(
     MaterialPageRoute<dynamic>(
@@ -531,6 +542,9 @@ Future<dynamic> showLocationPicker(
           resultCardDecoration: resultCardDecoration,
           countries: countries,
           language: language,
+          locationPickerType: locationPickerType,
+          geofenceRadius: geofenceRadius,
+          existingLocationName: existingLocationName,
         );
       },
     ),
