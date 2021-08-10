@@ -1,4 +1,4 @@
-// @dart=2.0
+// @dart=2.9
 
 library google_map_location_picker;
 

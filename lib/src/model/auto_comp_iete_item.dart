@@ -1,6 +1,6 @@
 /// Autocomplete results item returned from Google will be deserialized
 /// into this model.
-// @dart=2.0
+// @dart=2.9
 
 class AutoCompleteItem {
   /// The id of the place. This helps to fetch the lat,lng of the place.
