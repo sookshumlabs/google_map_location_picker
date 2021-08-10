@@ -1,3 +1,5 @@
+// @dart=2.0
+
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
@@ -12,7 +14,6 @@ import 'package:geolocator/geolocator.dart';
 
 import 'package:google_map_location_picker/generated/l10n.dart';
 import 'package:google_map_location_picker/src/providers/location_provider.dart';
-import 'package:google_map_location_picker/src/slider.dart';
 import 'package:google_map_location_picker/src/utils/loading_builder.dart';
 import 'package:google_map_location_picker/src/utils/log.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -630,23 +631,6 @@ class MapPickerState extends State<MapPicker> {
             SizedBox(height: 40),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget radiusSlider() {
-    return Container(
-      margin: const EdgeInsets.only(top: 10, left: 15, right: 15),
-      child: FluidSlider(
-        min: 150,
-        max: 300,
-        sliderColor: primaryColor,
-        textColor: Theme.of(context).textTheme.headline6.color,
-        onValue: (value) {},
-        onSlide: (value) {
-          setState(() => radius = value.toDouble());
-          _setCircles(_lastMapPosition);
-        },
       ),
     );
   }

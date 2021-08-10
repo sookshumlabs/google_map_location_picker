@@ -1,5 +1,5 @@
+// @dart=2.0
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:google_map_location_picker/generated/l10n.dart';
 

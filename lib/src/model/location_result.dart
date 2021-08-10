@@ -1,3 +1,5 @@
+// @dart=2.0
+
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 /// The result returned after completing location selection.

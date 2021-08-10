@@ -1,7 +1,7 @@
+// @dart=2.0
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:google_map_location_picker/generated/l10n.dart';
 import 'package:google_map_location_picker/src/map.dart';
@@ -12,7 +12,6 @@ import 'package:google_map_location_picker/src/utils/uuid.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
-
 import 'model/auto_comp_iete_item.dart';
 import 'model/location_result.dart';
 import 'model/nearby_place.dart';
