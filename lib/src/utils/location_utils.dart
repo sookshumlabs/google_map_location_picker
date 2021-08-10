@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'dart:io';
 import 'package:package_info/package_info.dart';
 import 'package:flutter/services.dart';
@@ -16,7 +14,7 @@ class LocationUtils {
           "X-Ios-Bundle-Identifier": packageInfo.packageName,
         };
       } else if (Platform.isAndroid) {
-        String sha1;
+        String? sha1;
         try {
           sha1 = await _platform.invokeMethod('getSigningCertSha1', packageInfo.packageName);
         } on PlatformException {
@@ -25,7 +23,7 @@ class LocationUtils {
 
         _appHeaderCache = {
           "X-Android-Package": packageInfo.packageName,
-          "X-Android-Cert": sha1,
+          "X-Android-Cert": sha1!,
         };
       }
     }

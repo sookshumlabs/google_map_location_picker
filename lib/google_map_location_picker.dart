@@ -1,5 +1,3 @@
-// @dart=2.9
-
 library google_map_location_picker;
 
 export 'src/google_map_location_picker.dart';

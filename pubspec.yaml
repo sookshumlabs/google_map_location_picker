@@ -15,11 +15,10 @@ dependencies:
     sdk: flutter
 
   google_maps_flutter:
-  # geolocator: "6.0.0+4"
   geolocator: ^7.0.1
   android_intent: ^0.3.7+3
-  provider:
-  http: ^0.12.2
+  provider: ^5.0.0
+  http: ^0.13.3 
   stack_trace: ^1.9.5
   package_info:
   fluid_slider:
