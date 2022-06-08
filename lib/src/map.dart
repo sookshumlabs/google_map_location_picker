@@ -534,7 +534,7 @@ class MapPickerState extends State<MapPicker> {
                           ),
                           child: Container(
                             height: 50,
-                            child: OutlineButton(
+                            child: OutlinedButton(
                               child: Text(
                                 'Select Location',
                                 style: TextStyle(
@@ -558,11 +558,17 @@ class MapPickerState extends State<MapPicker> {
                                   });
                                 }
                               },
-                              color: Color(0xFF76D4F4),
-                              highlightedBorderColor: Colors.transparent,
-                              borderSide: BorderSide(color: Colors.transparent),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30.0),
+                              // color: Color(0xFF76D4F4),
+
+                              style: OutlinedButton.styleFrom(
+                                primary: primaryColor,
+                                elevation: 0,
+
+                                side: const BorderSide(color: Colors.transparent),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(30.0),
+                                ),
+                                // minimumSize: Size(104, 10),
                               ),
                             ),
                           ),
