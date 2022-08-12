@@ -394,6 +394,7 @@ class LocationPickerState extends State<LocationPicker> {
               key: Key('journey_to_dashboard_nav'),
               icon: Icon(
                 Icons.arrow_back,
+                size: 25,
                 color:
                     Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black,
               ),
