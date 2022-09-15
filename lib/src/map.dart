@@ -227,15 +227,10 @@ class MapPickerState extends State<MapPicker> {
             myLocationEnabled: true,
           ),
           pin(),
-          // geoFenceReminderAtCard(),
           locationCard(),
         ],
       ),
     );
-  }
-
-  Widget geoFenceReminderAtCard() {
-    return Positioned(bottom: 115.0, left: 5, right: 5, child: geoFenceReminderAt());
   }
 
   Key locationCardKey = Key('locationKey');
@@ -641,49 +636,6 @@ class MapPickerState extends State<MapPicker> {
     );
   }
 
-  Widget geoFenceReminderAt() {
-    return Padding(
-        padding: const EdgeInsets.all(5),
-        child: Container(
-          height: 50,
-          width: MediaQuery.of(context).size.width,
-          decoration: BoxDecoration(
-              color: Theme.of(context).primaryColor, borderRadius: BorderRadius.circular(5)),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                  child: FlatButton(
-                onPressed: () {
-                  setState(() => locationReminderAt = 'Leave: ');
-                },
-                child: Text(
-                  'When I leave',
-                  style: TextStyle(
-                      color: locationReminderAt != 'Leave: '
-                          ? Theme.of(context).textTheme.headline6?.color?.withOpacity(0.6)
-                          : Theme.of(context).textTheme.headline6?.color),
-                ),
-              )),
-              Container(width: 1, height: 25, color: Colors.black),
-              Container(
-                  child: FlatButton(
-                onPressed: () {
-                  setState(() => locationReminderAt = 'Arrive: ');
-                },
-                child: Text(
-                  'When I Arrive at',
-                  style: TextStyle(
-                      color: locationReminderAt != 'Arrive: '
-                          ? Theme.of(context).textTheme.headline6?.color?.withOpacity(0.6)
-                          : Theme.of(context).textTheme.headline6?.color),
-                ),
-              )),
-            ],
-          ),
-        ));
-  }
-
   var dialogOpen;
 
   Future _checkGeolocationPermission() async {
@@ -720,7 +672,7 @@ class MapPickerState extends State<MapPicker> {
             title: Text(S.of(context).access_to_location_denied),
             content: Text(S.of(context).allow_access_to_the_location_services),
             actions: <Widget>[
-              FlatButton(
+              TextButton(
                 child: Text(S.of(context).ok),
                 onPressed: () {
                   Navigator.of(context, rootNavigator: true).pop();
@@ -750,7 +702,7 @@ class MapPickerState extends State<MapPicker> {
             title: Text(S.of(context).access_to_location_permanently_denied),
             content: Text(S.of(context).allow_access_to_the_location_services_from_settings),
             actions: <Widget>[
-              FlatButton(
+              TextButton(
                 child: Text(S.of(context).ok),
                 onPressed: () {
                   Navigator.of(context, rootNavigator: true).pop();
