@@ -3,11 +3,8 @@ import 'dart:collection';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/services.dart' show rootBundle;
 import 'package:geolocator/geolocator.dart';
-import 'package:geolocator/geolocator.dart' as geoLocator;
 import 'package:google_map_location_picker/generated/l10n.dart';
 import 'package:google_map_location_picker/src/providers/location_provider.dart';
 import 'package:google_map_location_picker/src/utils/loading_builder.dart';
@@ -88,7 +85,7 @@ class MapPickerState extends State<MapPicker> {
   double radius = 150;
 
   void _onToggleMapTypePressed() {
-    final MapType nextType = MapType.values[(_currentMapType.index + 1) % MapType.values.length];
+    final nextType = MapType.values[(_currentMapType.index + 1) % MapType.values.length];
 
     setState(() => _currentMapType = nextType);
   }
@@ -98,26 +95,27 @@ class MapPickerState extends State<MapPicker> {
     Position? currentPosition;
     try {
       currentPosition = await Geolocator.getCurrentPosition();
-      d("position = $currentPosition");
+      d('position = $currentPosition');
 
       setState(() => _currentPosition = currentPosition);
     } catch (e) {
       currentPosition = null;
-      d("_initCurrentLocation#e = $e");
+      d('_initCurrentLocation#e = $e');
     }
 
     if (!mounted) return;
 
     setState(() => _currentPosition = currentPosition);
 
-    if (currentPosition != null)
-      moveToCurrentLocation(LatLng(currentPosition.latitude, currentPosition.longitude));
+    if (currentPosition != null) {
+      await moveToCurrentLocation(LatLng(currentPosition.latitude, currentPosition.longitude));
+    }
   }
 
   Future moveToCurrentLocation(LatLng currentLocation) async {
     d('MapPickerState.moveToCurrentLocation "currentLocation = [$currentLocation]"');
     final controller = await mapController.future;
-    controller.animateCamera(CameraUpdate.newCameraPosition(
+    await controller.animateCamera(CameraUpdate.newCameraPosition(
       CameraPosition(target: currentLocation, zoom: 16),
     ));
   }
@@ -125,8 +123,9 @@ class MapPickerState extends State<MapPicker> {
   @override
   void initState() {
     super.initState();
-    if (widget.automaticallyAnimateToCurrentLocation! && !widget.requiredGPS!)
+    if (widget.automaticallyAnimateToCurrentLocation! && !widget.requiredGPS!) {
       _initCurrentLocation();
+    }
 
     if (widget.mapStylePath != null) {
       rootBundle.loadString(widget.mapStylePath!).then((string) {
@@ -147,8 +146,9 @@ class MapPickerState extends State<MapPicker> {
       if (_currentPosition == null) _initCurrentLocation();
     }
 
-    if (_currentPosition != null && dialogOpen != null)
+    if (_currentPosition != null && dialogOpen != null) {
       Navigator.of(context, rootNavigator: true).pop();
+    }
 
     return Scaffold(
       body: Builder(
@@ -165,14 +165,14 @@ class MapPickerState extends State<MapPicker> {
     );
   }
 
-  Set<Circle> _circles = HashSet<Circle>();
+  final Set<Circle> _circles = HashSet<Circle>();
 //ids
   int _circleIdCounter = 1;
   dynamic locationReminderAt = '';
 
   // Set circles as points to the map
   void _setCircles(LatLng point) {
-    final String circleIdVal = 'circle_id_$_circleIdCounter';
+    final circleIdVal = 'circle_id_$_circleIdCounter';
     _circleIdCounter++;
     setState(() {
       _circles.clear();
@@ -214,13 +214,13 @@ class MapPickerState extends State<MapPicker> {
               _lastMapPosition = position.target;
             },
             onCameraIdle: () async {
-              print("onCameraIdle#_lastMapPosition = $_lastMapPosition");
+              print('onCameraIdle#_lastMapPosition = $_lastMapPosition');
 
               LocationProvider.of(context, listen: false).setLastIdleLocation(_lastMapPosition!);
               _setCircles(_lastMapPosition!);
             },
             onCameraMoveStarted: () {
-              print("onCameraMoveStarted#_lastMapPosition = $_lastMapPosition");
+              print('onCameraMoveStarted#_lastMapPosition = $_lastMapPosition');
             },
             mapType: _currentMapType,
             circles: _circles,
@@ -237,8 +237,8 @@ class MapPickerState extends State<MapPicker> {
   Color primaryColor = Color(0xFF003A86);
   bool showRadiusSlider = false;
   double height = 250;
-  double _defaultHight = 250;
-  double _expandedHeight = 450;
+  final double _defaultHight = 250;
+  final double _expandedHeight = 450;
 
   Widget locationCard() {
     return Align(
@@ -284,9 +284,9 @@ class MapPickerState extends State<MapPicker> {
                         CircularProgressIndicator(),
                       ],
                     ),
-                    builder: (context, data) {
-                      _address = data["address"];
-                      _placeId = data["placeId"];
+                    builder: (context, dynamic data) {
+                      _address = data['address'];
+                      _placeId = data['placeId'];
                       return Container(
                         decoration: BoxDecoration(
                           // color: Color(0xFFF9FAFA),
@@ -399,7 +399,7 @@ class MapPickerState extends State<MapPicker> {
                                       fontWeight: FontWeight.w600,
                                       color: radius == 150.toDouble()
                                           ? primaryColor
-                                          : Theme.of(context).textTheme.bodyText1?.color),
+                                          : Theme.of(context).textTheme.bodyLarge?.color),
                                 ),
                                 trailing: radius == 150.toDouble()
                                     ? Icon(
@@ -427,7 +427,7 @@ class MapPickerState extends State<MapPicker> {
                                     fontWeight: FontWeight.w600,
                                     color: radius == 200.toDouble()
                                         ? primaryColor
-                                        : Theme.of(context).textTheme.bodyText1?.color,
+                                        : Theme.of(context).textTheme.bodyLarge?.color,
                                   ),
                                 ),
                                 trailing: radius == 200.toDouble()
@@ -456,7 +456,7 @@ class MapPickerState extends State<MapPicker> {
                                     fontWeight: FontWeight.w600,
                                     color: radius == 250.toDouble()
                                         ? primaryColor
-                                        : Theme.of(context).textTheme.bodyText1?.color,
+                                        : Theme.of(context).textTheme.bodyLarge?.color,
                                   ),
                                 ),
                                 trailing: radius == 250.toDouble()
@@ -485,7 +485,7 @@ class MapPickerState extends State<MapPicker> {
                                     fontWeight: FontWeight.w600,
                                     color: radius == 300.toDouble()
                                         ? primaryColor
-                                        : Theme.of(context).textTheme.bodyText1?.color,
+                                        : Theme.of(context).textTheme.bodyLarge?.color,
                                   ),
                                 ),
                                 trailing: radius == 300.toDouble()
@@ -530,22 +530,13 @@ class MapPickerState extends State<MapPicker> {
                           child: Container(
                             height: 50,
                             child: OutlinedButton(
-                              child: Text(
-                                'Select Location',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  fontFamily: 'Mulish',
-                                  color: Colors.white,
-                                ),
-                              ),
                               onPressed: () async {
                                 if (_address != null) {
                                   Navigator.of(context).pop({
-                                    'location': {
+                                    'location': <String, dynamic>{
                                       'latLng': LatLng(locationProvider.lastIdleLocation!.latitude,
                                           locationProvider.lastIdleLocation!.longitude),
-                                      'address': "$_address",
+                                      'address': '$_address',
                                       'notificationAt': locationReminderAt,
                                       'placeId': _placeId,
                                       'radius': radius
@@ -556,14 +547,22 @@ class MapPickerState extends State<MapPicker> {
                               // color: Color(0xFF76D4F4),
 
                               style: OutlinedButton.styleFrom(
-                                primary: primaryColor,
-                                elevation: 0,
+                                foregroundColor: primaryColor, elevation: 0,
 
                                 side: const BorderSide(color: Colors.transparent),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(30.0),
                                 ),
                                 // minimumSize: Size(104, 10),
+                              ),
+                              child: Text(
+                                'Select Location',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  fontFamily: 'Mulish',
+                                  color: Colors.white,
+                                ),
                               ),
                             ),
                           ),
@@ -585,25 +584,25 @@ class MapPickerState extends State<MapPicker> {
 
   Future<dynamic> getAddress(LatLng? location) async {
     if (location == null) {
-      return {"placeId": null, "address": null};
+      return {'placeId': null, 'address': null};
     }
     try {
       final endPoint =
           'https://maps.googleapis.com/maps/api/geocode/json?latlng=${location.latitude},${location.longitude}'
           '&key=${widget.apiKey}&language=${widget.language}';
 
-      var response = jsonDecode(
+      dynamic response = jsonDecode(
           (await http.get(Uri.parse(endPoint), headers: await LocationUtils.getAppHeaders())).body);
 
-      return {
-        "placeId": response['results'][0]['place_id'],
-        "address": response['results'][0]['formatted_address']
+      return <String, dynamic>{
+        'placeId': response['results'][0]['place_id'],
+        'address': response['results'][0]['formatted_address']
       };
     } catch (e) {
       print(e);
     }
 
-    return {"placeId": null, "address": null};
+    return {'placeId': null, 'address': null};
   }
 
   Widget pin() {
@@ -636,11 +635,11 @@ class MapPickerState extends State<MapPicker> {
     );
   }
 
-  var dialogOpen;
+  dynamic dialogOpen;
 
   Future _checkGeolocationPermission() async {
     final geolocationStatus = await Geolocator.checkPermission();
-    d("geolocationStatus = $geolocationStatus");
+    d('geolocationStatus = $geolocationStatus');
 
     if (geolocationStatus == LocationPermission.denied && dialogOpen == null) {
       dialogOpen = _showDeniedDialog();
@@ -658,7 +657,7 @@ class MapPickerState extends State<MapPicker> {
   }
 
   Future _showDeniedDialog() {
-    return showDialog(
+    return showDialog<dynamic>(
       context: context,
       barrierDismissible: false,
       builder: (context) {
@@ -688,7 +687,7 @@ class MapPickerState extends State<MapPicker> {
   }
 
   Future _showDeniedForeverDialog() {
-    return showDialog(
+    return showDialog<dynamic>(
       context: context,
       barrierDismissible: false,
       builder: (context) {

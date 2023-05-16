@@ -26,14 +26,14 @@ import 'messages_tr.dart' as messages_tr;
 
 typedef Future<dynamic> LibraryLoader();
 Map<String, LibraryLoader> _deferredLibraries = {
-  'ar': () => new Future.value(null),
-  'en': () => new Future.value(null),
-  'es': () => new Future.value(null),
-  'fr': () => new Future.value(null),
-  'it': () => new Future.value(null),
-  'pt': () => new Future.value(null),
-  'ru': () => new Future.value(null),
-  'tr': () => new Future.value(null),
+  'ar': () => new Future<dynamic>.value(null),
+  'en': () => new Future<dynamic>.value(null),
+  'es': () => new Future<dynamic>.value(null),
+  'fr': () => new Future<dynamic>.value(null),
+  'it': () => new Future<dynamic>.value(null),
+  'pt': () => new Future<dynamic>.value(null),
+  'ru': () => new Future<dynamic>.value(null),
+  'tr': () => new Future<dynamic>.value(null),
 };
 
 MessageLookupByLibrary? _findExact(String localeName) {
@@ -65,13 +65,13 @@ Future<bool> initializeMessages(String localeName) async {
       localeName, (locale) => _deferredLibraries[locale] != null,
       onFailure: (_) => null);
   if (availableLocale == null) {
-    return new Future.value(false);
+    return Future<bool>.value(false);
   }
   var lib = _deferredLibraries[availableLocale];
-  await (lib == null ? new Future.value(false) : lib());
+  await (lib == null ? new Future<dynamic>.value(false) : lib());
   initializeInternalMessageLookup(() => new CompositeMessageLookup());
   messageLookup.addLocale(availableLocale, _findGeneratedMessagesFor);
-  return new Future.value(true);
+  return new Future<bool>.value(true);
 }
 
 bool _messagesExistFor(String locale) {
