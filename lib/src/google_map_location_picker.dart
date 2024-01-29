@@ -36,7 +36,6 @@ class LocationPicker extends StatefulWidget {
     this.resultCardDecoration,
     this.resultCardPadding,
     this.countries,
-    this.language,
     this.desiredAccuracy,
     this.language = 'en',
     this.existingLocationName,
@@ -65,7 +64,7 @@ class LocationPicker extends StatefulWidget {
   final Decoration? resultCardDecoration;
   final EdgeInsets? resultCardPadding;
 
-  final LocationAccuracy desiredAccuracy;
+  final LocationAccuracy? desiredAccuracy;
 
   final String? language;
   final dynamic locationPickerType;
@@ -284,11 +283,10 @@ class LocationPickerState extends State<LocationPicker> {
   /// Fetches and updates the nearby places to the provided lat,lng
   void getNearbyPlaces(LatLng latLng) {
     LocationUtils.getAppHeaders().then((headers) {
-      var endpoint =
-          "https://maps.googleapis.com/maps/api/place/nearbysearch/json?" +
-              "key=${widget.apiKey}&" +
-              "location=${latLng.latitude},${latLng.longitude}&radius=150" +
-              "&language=${widget.language}";
+      var endpoint = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?" +
+          "key=${widget.apiKey}&" +
+          "location=${latLng.latitude},${latLng.longitude}&radius=150" +
+          "&language=${widget.language}";
 
       return http.get(Uri.parse(endpoint), headers: headers);
     }).then((response) {
@@ -326,8 +324,8 @@ class LocationPickerState extends State<LocationPicker> {
             "&key=${widget.apiKey}" +
             "&language=${widget.language}";
 
-    final response = await http.get(Uri.parse(endpoint),
-        headers: await LocationUtils.getAppHeaders());
+    final response =
+        await http.get(Uri.parse(endpoint), headers: await LocationUtils.getAppHeaders());
 
     if (response.statusCode == 200) {
       Map<String, dynamic> responseJson = jsonDecode(response.body);
@@ -510,13 +508,6 @@ Future<dynamic> showLocationPicker(
   bool automaticallyAnimateToCurrentLocation = true,
   String? mapStylePath,
   Color appBarColor = Colors.transparent,
-  BoxDecoration searchBarBoxDecoration,
-  String hintText,
-  Widget resultCardConfirmIcon,
-  AlignmentGeometry resultCardAlignment,
-  EdgeInsetsGeometry resultCardPadding,
-  Decoration resultCardDecoration,
-  String language = 'en',
   LocationAccuracy desiredAccuracy = LocationAccuracy.best,
   BoxDecoration? searchBarBoxDecoration,
   String? hintText,

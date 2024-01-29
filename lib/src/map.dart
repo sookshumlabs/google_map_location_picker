@@ -60,7 +60,7 @@ class MapPicker extends StatefulWidget {
   final Decoration? resultCardDecoration;
   final EdgeInsets? resultCardPadding;
 
-  final LocationAccuracy desiredAccuracy;
+  final LocationAccuracy? desiredAccuracy;
 
   final String? language;
   final dynamic locationPickerType;
@@ -594,9 +594,8 @@ class MapPickerState extends State<MapPicker> {
           'https://maps.googleapis.com/maps/api/geocode/json?latlng=${location?.latitude},${location?.longitude}'
           '&key=${widget.apiKey}&language=${widget.language}';
 
-      final response = jsonDecode((await http.get(Uri.parse(endpoint),
-              headers: await LocationUtils.getAppHeaders()))
-          .body);
+      final response = jsonDecode(
+          (await http.get(Uri.parse(endpoint), headers: await LocationUtils.getAppHeaders())).body);
 
       return <String, dynamic>{
         'placeId': response['results'][0]['place_id'],
