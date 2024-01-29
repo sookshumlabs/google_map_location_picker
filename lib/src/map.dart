@@ -1,11 +1,9 @@
 import 'dart:async';
+import 'dart:collection';
 import 'dart:convert';
 
-import 'package:android_intent/android_intent.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/services.dart' show rootBundle;
 import 'package:geolocator/geolocator.dart';
 import 'package:google_map_location_picker/generated/l10n.dart';
 import 'package:google_map_location_picker/src/providers/location_provider.dart';
@@ -15,13 +13,12 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 
-import 'model/location_result.dart';
 import 'utils/location_utils.dart';
 
 class MapPicker extends StatefulWidget {
   const MapPicker(
     this.apiKey, {
-    Key key,
+    Key? key,
     this.initialCenter,
     this.initialZoom,
     this.requiredGPS,
@@ -38,32 +35,37 @@ class MapPicker extends StatefulWidget {
     this.resultCardPadding,
     this.language,
     this.desiredAccuracy,
+    this.existingLocationName,
+    this.geofenceRadius,
+    this.locationPickerType,
   }) : super(key: key);
 
   final String apiKey;
 
-  final LatLng initialCenter;
-  final double initialZoom;
+  final LatLng? initialCenter;
+  final double? initialZoom;
 
-  final bool requiredGPS;
-  final bool myLocationButtonEnabled;
-  final bool layersButtonEnabled;
-  final bool automaticallyAnimateToCurrentLocation;
+  final bool? requiredGPS;
+  final bool? myLocationButtonEnabled;
+  final bool? layersButtonEnabled;
+  final bool? automaticallyAnimateToCurrentLocation;
 
-  final String mapStylePath;
+  final String? mapStylePath;
 
-  final Color appBarColor;
-  final BoxDecoration searchBarBoxDecoration;
-  final String hintText;
-  final Widget resultCardConfirmIcon;
-  final Alignment resultCardAlignment;
-  final Decoration resultCardDecoration;
-  final EdgeInsets resultCardPadding;
-
-  final String language;
+  final Color? appBarColor;
+  final BoxDecoration? searchBarBoxDecoration;
+  final String? hintText;
+  final Widget? resultCardConfirmIcon;
+  final Alignment? resultCardAlignment;
+  final Decoration? resultCardDecoration;
+  final EdgeInsets? resultCardPadding;
 
   final LocationAccuracy desiredAccuracy;
 
+  final String? language;
+  final dynamic locationPickerType;
+  final dynamic existingLocationName;
+  final dynamic geofenceRadius;
   @override
   MapPickerState createState() => MapPickerState();
 }
@@ -73,50 +75,50 @@ class MapPickerState extends State<MapPicker> {
 
   MapType _currentMapType = MapType.normal;
 
-  String _mapStyle;
+  String? _mapStyle;
 
-  LatLng _lastMapPosition;
+  LatLng? _lastMapPosition;
 
-  Position _currentPosition;
+  Position? _currentPosition;
 
-  String _address;
+  String? _address;
 
-  String _placeId;
+  String? _placeId;
+
+  double radius = 150;
 
   void _onToggleMapTypePressed() {
-    final MapType nextType =
-        MapType.values[(_currentMapType.index + 1) % MapType.values.length];
+    final nextType = MapType.values[(_currentMapType.index + 1) % MapType.values.length];
 
     setState(() => _currentMapType = nextType);
   }
 
   // this also checks for location permission.
   Future<void> _initCurrentLocation() async {
-    Position currentPosition;
+    Position? currentPosition;
     try {
-      currentPosition =
-          await getCurrentPosition(desiredAccuracy: widget.desiredAccuracy);
-      d("position = $currentPosition");
+      currentPosition = await Geolocator.getCurrentPosition();
+      d('position = $currentPosition');
 
       setState(() => _currentPosition = currentPosition);
     } catch (e) {
       currentPosition = null;
-      d("_initCurrentLocation#e = $e");
+      d('_initCurrentLocation#e = $e');
     }
 
     if (!mounted) return;
 
     setState(() => _currentPosition = currentPosition);
 
-    if (currentPosition != null)
-      moveToCurrentLocation(
-          LatLng(currentPosition.latitude, currentPosition.longitude));
+    if (currentPosition != null) {
+      await moveToCurrentLocation(LatLng(currentPosition.latitude, currentPosition.longitude));
+    }
   }
 
   Future moveToCurrentLocation(LatLng currentLocation) async {
     d('MapPickerState.moveToCurrentLocation "currentLocation = [$currentLocation]"');
     final controller = await mapController.future;
-    controller.animateCamera(CameraUpdate.newCameraPosition(
+    await controller.animateCamera(CameraUpdate.newCameraPosition(
       CameraPosition(target: currentLocation, zoom: 16),
     ));
   }
@@ -124,32 +126,39 @@ class MapPickerState extends State<MapPicker> {
   @override
   void initState() {
     super.initState();
-    if (widget.automaticallyAnimateToCurrentLocation && !widget.requiredGPS)
+    if (widget.automaticallyAnimateToCurrentLocation! && !widget.requiredGPS!) {
       _initCurrentLocation();
+    }
 
     if (widget.mapStylePath != null) {
-      rootBundle.loadString(widget.mapStylePath).then((string) {
+      rootBundle.loadString(widget.mapStylePath!).then((string) {
         _mapStyle = string;
+      });
+    }
+    if (widget.locationPickerType == 'update') {
+      setState(() {
+        radius = widget.geofenceRadius ?? 150;
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (widget.requiredGPS) {
+    if (widget.requiredGPS!) {
       _checkGeolocationPermission();
       if (_currentPosition == null) _initCurrentLocation();
     }
 
-    if (_currentPosition != null && dialogOpen != null)
+    if (_currentPosition != null && dialogOpen != null) {
       Navigator.of(context, rootNavigator: true).pop();
+    }
 
     return Scaffold(
       body: Builder(
         builder: (context) {
           if (_currentPosition == null &&
-              widget.automaticallyAnimateToCurrentLocation &&
-              widget.requiredGPS) {
+              widget.automaticallyAnimateToCurrentLocation! &&
+              widget.requiredGPS!) {
             return const Center(child: CircularProgressIndicator());
           }
 
@@ -159,6 +168,30 @@ class MapPickerState extends State<MapPicker> {
     );
   }
 
+  final Set<Circle> _circles = HashSet<Circle>();
+//ids
+  int _circleIdCounter = 1;
+  dynamic locationReminderAt = '';
+
+  // Set circles as points to the map
+  void _setCircles(LatLng point) {
+    final circleIdVal = 'circle_id_$_circleIdCounter';
+    _circleIdCounter++;
+    setState(() {
+      _circles.clear();
+      _circles.add(
+        Circle(
+          circleId: CircleId(circleIdVal),
+          center: point,
+          radius: radius,
+          fillColor: Color(0xFFB3B2B280),
+          strokeWidth: 3,
+          strokeColor: Color(0xFFB3B2B2),
+        ),
+      );
+    });
+  }
+
   Widget buildMap() {
     return Center(
       child: Stack(
@@ -166,42 +199,35 @@ class MapPickerState extends State<MapPicker> {
           GoogleMap(
             myLocationButtonEnabled: false,
             initialCameraPosition: CameraPosition(
-              target: widget.initialCenter,
-              zoom: widget.initialZoom,
+              target: widget.initialCenter!,
+              zoom: widget.initialZoom!,
             ),
             onMapCreated: (GoogleMapController controller) {
               mapController.complete(controller);
+
               //Implementation of mapStyle
               if (widget.mapStylePath != null) {
                 controller.setMapStyle(_mapStyle);
               }
 
               _lastMapPosition = widget.initialCenter;
-              LocationProvider.of(context, listen: false)
-                  .setLastIdleLocation(_lastMapPosition);
+              LocationProvider.of(context, listen: false).setLastIdleLocation(_lastMapPosition!);
             },
             onCameraMove: (CameraPosition position) {
               _lastMapPosition = position.target;
             },
             onCameraIdle: () async {
-              print("onCameraIdle#_lastMapPosition = $_lastMapPosition");
-              LocationProvider.of(context, listen: false)
-                  .setLastIdleLocation(_lastMapPosition);
+              print('onCameraIdle#_lastMapPosition = $_lastMapPosition');
+
+              LocationProvider.of(context, listen: false).setLastIdleLocation(_lastMapPosition!);
+              _setCircles(_lastMapPosition!);
             },
             onCameraMoveStarted: () {
-              print("onCameraMoveStarted#_lastMapPosition = $_lastMapPosition");
+              print('onCameraMoveStarted#_lastMapPosition = $_lastMapPosition');
             },
-//            onTap: (latLng) {
-//              clearOverlay();
-//            },
             mapType: _currentMapType,
+            circles: _circles,
             myLocationEnabled: true,
-          ),
-          _MapFabs(
-            myLocationButtonEnabled: widget.myLocationButtonEnabled,
-            layersButtonEnabled: widget.layersButtonEnabled,
-            onToggleMapTypePressed: _onToggleMapTypePressed,
-            onMyLocationPressed: _initCurrentLocation,
           ),
           pin(),
           locationCard(),
@@ -210,67 +236,359 @@ class MapPickerState extends State<MapPicker> {
     );
   }
 
+  Key locationCardKey = Key('locationKey');
+  Color primaryColor = Color(0xFF003A86);
+  bool showRadiusSlider = false;
+  double height = 250;
+  final double _defaultHight = 250;
+  final double _expandedHeight = 450;
+
   Widget locationCard() {
     return Align(
       alignment: widget.resultCardAlignment ?? Alignment.bottomCenter,
-      child: Padding(
-        padding: widget.resultCardPadding ?? EdgeInsets.all(16.0),
-        child: Card(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          child: Consumer<LocationProvider>(
-              builder: (context, locationProvider, _) {
+      child: Container(
+        constraints: BoxConstraints(
+          minHeight: 100,
+          maxHeight: height,
+          minWidth: MediaQuery.of(context).size.width,
+        ),
+        decoration: BoxDecoration(
+          // color: Theme.of(context).cardTheme.color,
+          color: Theme.of(context).brightness == Brightness.dark
+              ? Theme.of(context).cardColor
+              : Color(0xFFF9FAFA),
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(30),
+            topRight: Radius.circular(30),
+          ),
+          boxShadow: [
+            BoxShadow(
+              blurRadius: 12.0,
+              offset: Offset(0, 3),
+              color: Color(0xFF214A8119),
+            ),
+          ],
+        ),
+        width: MediaQuery.of(context).size.width,
+        child: Consumer<LocationProvider>(
+          builder: (context, locationProvider, _) {
             return Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              padding: const EdgeInsets.only(top: 5.0, left: 10, right: 10, bottom: 5),
+              child: Column(
+                // mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
-                  Flexible(
-                    flex: 20,
-                    child: FutureLoadingBuilder<Map<String, String>>(
-                      future: getAddress(locationProvider.lastIdleLocation),
-                      mutable: true,
-                      loadingIndicator: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: <Widget>[
-                          CircularProgressIndicator(),
-                        ],
-                      ),
-                      builder: (context, data) {
-                        _address = data["address"];
-                        _placeId = data["placeId"];
-                        return Text(
-                          _address ??
-                              S.of(context)?.unnamedPlace ??
-                              'Unnamed place',
-                          style: TextStyle(fontSize: 18),
-                        );
-                      },
+                  FutureLoadingBuilder<dynamic>(
+                    future: getAddress(locationProvider.lastIdleLocation),
+                    mutable: true,
+                    loadingIndicator: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        SizedBox(height: 10),
+                        CircularProgressIndicator(),
+                      ],
                     ),
+                    builder: (context, dynamic data) {
+                      _address = data['address'];
+                      _placeId = data['placeId'];
+                      return Container(
+                        decoration: BoxDecoration(
+                          // color: Color(0xFFF9FAFA),
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Theme.of(context).cardColor
+                              : Color(0xFFF9FAFA),
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        margin: EdgeInsets.all(10),
+                        padding: EdgeInsets.all(10),
+                        child: Container(
+                          child: Text(
+                            _address ?? 'Unnamed place',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontFamily: 'Mulish',
+                              fontWeight: FontWeight.w600,
+                            ),
+                            softWrap: true,
+                            maxLines: 2,
+                            // overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      );
+                    },
                   ),
                   Spacer(),
-                  FloatingActionButton(
-                    onPressed: () {
-                      Navigator.of(context).pop({
-                        'location': LocationResult(
-                          latLng: locationProvider.lastIdleLocation,
-                          address: _address,
-                          placeId: _placeId,
-                        )
-                      });
-                    },
-                    child: widget.resultCardConfirmIcon ??
-                        Icon(Icons.arrow_forward),
+                  Divider(
+                    height: 10,
+                  ),
+                  Container(
+                    margin: EdgeInsets.only(left: 20, right: 20),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Radius',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            fontFamily: 'mulish',
+                          ),
+                        ),
+                        InkWell(
+                          onTap: () async {
+                            setState(() {
+                              showRadiusSlider = !showRadiusSlider;
+                              height = !showRadiusSlider ? _defaultHight : _expandedHeight;
+                            });
+                          },
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              //Text( reminderAt.reduce((String value, element) => value + ',' + element.toString()), style:TextStyle(color:_textColor)),
+                              Container(
+                                alignment: Alignment.bottomRight,
+                                padding: EdgeInsets.only(bottom: 5),
+                                width: MediaQuery.of(context).size.width * 0.45,
+                                child: Text(
+                                  radius.round().toString() + ' m',
+                                  style: TextStyle(
+                                    color: Theme.of(context).brightness == Brightness.dark
+                                        ? Colors.white
+                                        : primaryColor,
+                                    fontFamily: 'mulish',
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ),
+
+                              Icon(
+                                showRadiusSlider
+                                    ? Icons.arrow_drop_up_sharp
+                                    : Icons.arrow_drop_down_sharp,
+                                size: 24,
+                                color: primaryColor,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (showRadiusSlider) ...[
+                    // radiusSlider()
+                    Container(
+                      decoration: BoxDecoration(
+                        // color: Color(0xFFF9FAFA),
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Theme.of(context).cardColor
+                            : Color(0xFFF9FAFA),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      margin: EdgeInsets.all(10),
+                      padding: EdgeInsets.all(5),
+                      width: MediaQuery.of(context).size.width,
+                      child: Container(
+                        width: MediaQuery.of(context).size.width * .5,
+                        child: Column(
+                          children: [
+                            Container(
+                              width: MediaQuery.of(context).size.width,
+                              child: ListTile(
+                                title: Text(
+                                  150.round().toString() + ' m',
+                                  style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      color: radius == 150.toDouble()
+                                          ? primaryColor
+                                          : Theme.of(context).textTheme.bodyLarge?.color),
+                                ),
+                                trailing: radius == 150.toDouble()
+                                    ? Icon(
+                                        Icons.done,
+                                        color: primaryColor,
+                                      )
+                                    : null,
+                                onTap: () {
+                                  setState(() {
+                                    radius = 150;
+                                    showRadiusSlider = !showRadiusSlider;
+                                    height = !showRadiusSlider ? _defaultHight : _expandedHeight;
+                                  });
+                                  _setCircles(_lastMapPosition!);
+                                },
+                              ),
+                            ),
+                            Container(
+                              width: MediaQuery.of(context).size.width,
+                              child: ListTile(
+                                title: Text(
+                                  200.round().toString() + ' m',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: radius == 200.toDouble()
+                                        ? primaryColor
+                                        : Theme.of(context).textTheme.bodyLarge?.color,
+                                  ),
+                                ),
+                                trailing: radius == 200.toDouble()
+                                    ? Icon(
+                                        Icons.done,
+                                        color: primaryColor,
+                                      )
+                                    : null,
+                                onTap: () {
+                                  setState(() {
+                                    radius = 200;
+                                    showRadiusSlider = !showRadiusSlider;
+                                    height = !showRadiusSlider ? _defaultHight : _expandedHeight;
+                                  });
+                                  _setCircles(_lastMapPosition!);
+                                },
+                              ),
+                            ),
+                            Container(
+                              width: MediaQuery.of(context).size.width,
+                              child: ListTile(
+                                title: Text(
+                                  250.round().toString() + ' m',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: radius == 250.toDouble()
+                                        ? primaryColor
+                                        : Theme.of(context).textTheme.bodyLarge?.color,
+                                  ),
+                                ),
+                                trailing: radius == 250.toDouble()
+                                    ? Icon(
+                                        Icons.done,
+                                        color: primaryColor,
+                                      )
+                                    : null,
+                                onTap: () {
+                                  setState(() {
+                                    showRadiusSlider = !showRadiusSlider;
+                                    radius = 250;
+                                    height = !showRadiusSlider ? _defaultHight : _expandedHeight;
+                                  });
+                                  _setCircles(_lastMapPosition!);
+                                },
+                              ),
+                            ),
+                            Container(
+                              width: MediaQuery.of(context).size.width,
+                              child: ListTile(
+                                title: Text(
+                                  300.round().toString() + 'm',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: radius == 300.toDouble()
+                                        ? primaryColor
+                                        : Theme.of(context).textTheme.bodyLarge?.color,
+                                  ),
+                                ),
+                                trailing: radius == 300.toDouble()
+                                    ? Icon(
+                                        Icons.done,
+                                        color: primaryColor,
+                                      )
+                                    : null,
+                                onTap: () {
+                                  setState(() {
+                                    radius = 300;
+                                    showRadiusSlider = !showRadiusSlider;
+                                    height = !showRadiusSlider ? _defaultHight : _expandedHeight;
+                                  });
+                                  _setCircles(_lastMapPosition!);
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                  if (!showRadiusSlider) ...[
+                    SizedBox(
+                      height: 20,
+                    ),
+                    Center(
+                      child: Container(
+                        width: MediaQuery.of(context).size.width,
+                        padding: EdgeInsets.only(left: 10, right: 10, top: 0, bottom: 10),
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(30),
+                            gradient: LinearGradient(
+                              colors: [
+                                Color(0xFF0066B7),
+                                Color(0xFF003A86),
+                              ],
+                            ),
+                          ),
+                          child: Container(
+                            height: 50,
+                            child: OutlinedButton(
+                              onPressed: () async {
+                                if (_address != null) {
+                                  Navigator.of(context).pop({
+                                    'location': <String, dynamic>{
+                                      'latLng': LatLng(locationProvider.lastIdleLocation!.latitude,
+                                          locationProvider.lastIdleLocation!.longitude),
+                                      'address': '$_address',
+                                      'notificationAt': locationReminderAt,
+                                      'placeId': _placeId,
+                                      'radius': radius
+                                    },
+                                  });
+                                }
+                              },
+                              // color: Color(0xFF76D4F4),
+
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: primaryColor, elevation: 0,
+
+                                side: const BorderSide(color: Colors.transparent),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(30.0),
+                                ),
+                                // minimumSize: Size(104, 10),
+                              ),
+                              child: Text(
+                                'Select Location',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  fontFamily: 'Mulish',
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                  SizedBox(
+                    height: 10,
                   ),
                 ],
               ),
             );
-          }),
+          },
         ),
       ),
     );
   }
 
-  Future<Map<String, String>> getAddress(LatLng location) async {
+  Future<dynamic> getAddress(LatLng? location) async {
+    if (location == null) {
+      return {'placeId': null, 'address': null};
+    }
     try {
       final endpoint =
           'https://maps.googleapis.com/maps/api/geocode/json?latlng=${location?.latitude},${location?.longitude}'
@@ -280,15 +598,15 @@ class MapPickerState extends State<MapPicker> {
               headers: await LocationUtils.getAppHeaders()))
           .body);
 
-      return {
-        "placeId": response['results'][0]['place_id'],
-        "address": response['results'][0]['formatted_address']
+      return <String, dynamic>{
+        'placeId': response['results'][0]['place_id'],
+        'address': response['results'][0]['formatted_address']
       };
     } catch (e) {
       print(e);
     }
 
-    return {"placeId": null, "address": null};
+    return {'placeId': null, 'address': null};
   }
 
   Widget pin() {
@@ -297,40 +615,39 @@ class MapPickerState extends State<MapPicker> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Icon(Icons.place, size: 56),
+            Icon(
+              Icons.location_on,
+              size: 40,
+              color: Color(0xFF76D4F4),
+            ),
             Container(
-              decoration: ShapeDecoration(
-                shadows: [
-                  BoxShadow(
-                    blurRadius: 4,
-                    color: Colors.black38,
-                  ),
-                ],
-                shape: CircleBorder(
-                  side: BorderSide(
-                    width: 4,
-                    color: Colors.transparent,
-                  ),
+              width: 10,
+              height: 10,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Color(0xFF175EBA),
+                border: Border.all(
+                  color: Colors.white,
+                  width: 1,
                 ),
               ),
             ),
-            SizedBox(height: 56),
+            SizedBox(height: 40),
           ],
         ),
       ),
     );
   }
 
-  var dialogOpen;
+  dynamic dialogOpen;
 
   Future _checkGeolocationPermission() async {
-    final geolocationStatus = await checkPermission();
-    d("geolocationStatus = $geolocationStatus");
+    final geolocationStatus = await Geolocator.checkPermission();
+    d('geolocationStatus = $geolocationStatus');
 
     if (geolocationStatus == LocationPermission.denied && dialogOpen == null) {
       dialogOpen = _showDeniedDialog();
-    } else if (geolocationStatus == LocationPermission.deniedForever &&
-        dialogOpen == null) {
+    } else if (geolocationStatus == LocationPermission.deniedForever && dialogOpen == null) {
       dialogOpen = _showDeniedForeverDialog();
     } else if (geolocationStatus == LocationPermission.whileInUse ||
         geolocationStatus == LocationPermission.always) {
@@ -344,7 +661,7 @@ class MapPickerState extends State<MapPicker> {
   }
 
   Future _showDeniedDialog() {
-    return showDialog(
+    return showDialog<dynamic>(
       context: context,
       barrierDismissible: false,
       builder: (context) {
@@ -355,14 +672,11 @@ class MapPickerState extends State<MapPicker> {
             return true;
           },
           child: AlertDialog(
-            title: Text(S.of(context)?.access_to_location_denied ??
-                'Access to location denied'),
-            content: Text(
-                S.of(context)?.allow_access_to_the_location_services ??
-                    'Allow access to the location services.'),
+            title: Text(S.of(context).access_to_location_denied),
+            content: Text(S.of(context).allow_access_to_the_location_services),
             actions: <Widget>[
-              FlatButton(
-                child: Text(S.of(context)?.ok ?? 'Ok'),
+              TextButton(
+                child: Text(S.of(context).ok),
                 onPressed: () {
                   Navigator.of(context, rootNavigator: true).pop();
                   _initCurrentLocation();
@@ -377,7 +691,7 @@ class MapPickerState extends State<MapPicker> {
   }
 
   Future _showDeniedForeverDialog() {
-    return showDialog(
+    return showDialog<dynamic>(
       context: context,
       barrierDismissible: false,
       builder: (context) {
@@ -388,18 +702,14 @@ class MapPickerState extends State<MapPicker> {
             return true;
           },
           child: AlertDialog(
-            title: Text(S.of(context)?.access_to_location_permanently_denied ??
-                'Access to location permanently denied'),
-            content: Text(S
-                    .of(context)
-                    ?.allow_access_to_the_location_services_from_settings ??
-                'Allow access to the location services for this App using the device settings.'),
+            title: Text(S.of(context).access_to_location_permanently_denied),
+            content: Text(S.of(context).allow_access_to_the_location_services_from_settings),
             actions: <Widget>[
-              FlatButton(
-                child: Text(S.of(context)?.ok ?? 'Ok'),
+              TextButton(
+                child: Text(S.of(context).ok),
                 onPressed: () {
                   Navigator.of(context, rootNavigator: true).pop();
-                  openAppSettings();
+                  Geolocator.openAppSettings();
                   dialogOpen = null;
                 },
               ),
@@ -407,85 +717,6 @@ class MapPickerState extends State<MapPicker> {
           ),
         );
       },
-    );
-  }
-
-  // TODO: 9/12/2020 this is no longer needed, remove in the next release
-  Future _checkGps() async {
-    if (!(await isLocationServiceEnabled())) {
-      if (Theme.of(context).platform == TargetPlatform.android) {
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: Text(S.of(context)?.cant_get_current_location ??
-                  "Can't get current location"),
-              content: Text(S
-                      .of(context)
-                      ?.please_make_sure_you_enable_gps_and_try_again ??
-                  'Please make sure you enable GPS and try again'),
-              actions: <Widget>[
-                FlatButton(
-                  child: Text('Ok'),
-                  onPressed: () {
-                    final AndroidIntent intent = AndroidIntent(
-                        action: 'android.settings.LOCATION_SOURCE_SETTINGS');
-
-                    intent.launch();
-                    Navigator.of(context, rootNavigator: true).pop();
-                  },
-                ),
-              ],
-            );
-          },
-        );
-      }
-    }
-  }
-}
-
-class _MapFabs extends StatelessWidget {
-  const _MapFabs({
-    Key key,
-    @required this.myLocationButtonEnabled,
-    @required this.layersButtonEnabled,
-    @required this.onToggleMapTypePressed,
-    @required this.onMyLocationPressed,
-  })  : assert(onToggleMapTypePressed != null),
-        super(key: key);
-
-  final bool myLocationButtonEnabled;
-  final bool layersButtonEnabled;
-
-  final VoidCallback onToggleMapTypePressed;
-  final VoidCallback onMyLocationPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      alignment: Alignment.topRight,
-      margin: const EdgeInsets.only(top: kToolbarHeight + 24, right: 8),
-      child: Column(
-        children: <Widget>[
-          if (layersButtonEnabled)
-            FloatingActionButton(
-              onPressed: onToggleMapTypePressed,
-              materialTapTargetSize: MaterialTapTargetSize.padded,
-              mini: true,
-              child: const Icon(Icons.layers),
-              heroTag: "layers",
-            ),
-          if (myLocationButtonEnabled)
-            FloatingActionButton(
-              onPressed: onMyLocationPressed,
-              materialTapTargetSize: MaterialTapTargetSize.padded,
-              mini: true,
-              child: const Icon(Icons.my_location),
-              heroTag: "myLocation",
-            ),
-        ],
-      ),
     );
   }
 }
