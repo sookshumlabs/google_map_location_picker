@@ -19,7 +19,7 @@ dependencies:
   provider: ^5.0.0
   http: 
   stack_trace: ^1.9.5
-  package_info:
+  package_info_plus:
 
 dev_dependencies:
   flutter_test:
